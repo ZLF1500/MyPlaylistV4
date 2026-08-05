@@ -72,7 +72,7 @@ const themes = {
 export default function MikuMusic() {
   const [page, setPage] = useState("home");
   const [theme, setTheme] = useState("dark");
-  const [view, setView] = useState("grid");
+  const [view, setView] = useState("list");
   const [showTop, setShowTop] = useState(false);
   const mainRef = useRef(null);
   const T = themes[theme];
