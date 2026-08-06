@@ -16,8 +16,25 @@ export default function GlowNav({ items, active, onSelect, enabled = true }) {
 
   useEffect(() => {
     if (!enabled) return;
-    const btn = wrapRef.current?.querySelector(`[data-id="${active}"]`);
-    if (btn) setIndicator({ left: btn.offsetLeft, width: btn.offsetWidth });
+    const place = () => {
+      const btn = wrapRef.current?.querySelector(`[data-id="${active}"]`);
+      if (btn) setIndicator({ left: btn.offsetLeft, width: btn.offsetWidth });
+    };
+    place();
+
+    // Re-place whenever the nav's own box actually changes size — this is
+    // what catches sidebar collapse/expand (which resizes the filter bar
+    // even though the browser window itself didn't resize). A plain
+    // window "resize" listener alone would miss that entirely.
+    const ro = new ResizeObserver(place);
+    if (wrapRef.current) ro.observe(wrapRef.current);
+    // Kept as a lightweight fallback for viewport-driven layout shifts.
+    window.addEventListener("resize", place);
+
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", place);
+    };
   }, [active, items, enabled]);
 
   if (!enabled) {

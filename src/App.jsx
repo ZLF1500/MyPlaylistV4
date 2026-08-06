@@ -32,6 +32,7 @@ export default function MikuMusic() {
   // bar OUTSIDE the Home/CollectionPage swap, so navigating between pages
   // never unmounts it and playback keeps going.
   const [nowPlaying, setNowPlaying] = useState(null); // { kind, id, num, label }
+  const [nowPlayingExpanded, setNowPlayingExpanded] = useState(false);
   const mainRef = useRef(null);
   const T = themes[theme];
 
@@ -126,7 +127,14 @@ export default function MikuMusic() {
         />
 
         {/* ---------------- Main ---------------- */}
-        <main ref={mainRef} className="mm-main relative flex-1 overflow-y-auto" style={{ paddingBottom: nowPlaying ? 80 : 0 }}>
+        <main
+          ref={mainRef}
+          className="mm-main relative flex-1 overflow-y-auto"
+          style={{
+            paddingBottom: !nowPlaying ? 0 : nowPlayingExpanded ? (nowPlaying.kind === "track" ? 352 : 380) : 80,
+            transition: "padding-bottom .38s var(--ease-smooth)",
+          }}
+        >
           <TopBar
             onToggleSidebar={toggleSidebar}
             sidebarCollapsed={sidebarCollapsed}
@@ -165,7 +173,13 @@ export default function MikuMusic() {
         </main>
       </div>
 
-      <NowPlayingBar nowPlaying={nowPlaying} onClose={() => setNowPlaying(null)} sidebarCollapsed={sidebarCollapsed} />
+      <NowPlayingBar
+        nowPlaying={nowPlaying}
+        onClose={() => setNowPlaying(null)}
+        sidebarCollapsed={sidebarCollapsed}
+        expanded={nowPlayingExpanded}
+        onToggleExpand={() => setNowPlayingExpanded((v) => !v)}
+      />
     </div>
   );
 }
