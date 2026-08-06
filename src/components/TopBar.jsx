@@ -1,0 +1,35 @@
+import { Moon, Sun, ChevronLeft, ChevronRight, Settings, Menu } from "lucide-react";
+import FxPanel from "./FxPanel.jsx";
+
+export default function TopBar({
+  onToggleSidebar, sidebarCollapsed,
+  onBack, canGoBack,
+  onForward, canGoForward,
+  showFxPanel, onToggleFxPanel, onCloseFxPanel, fx, setFx,
+  theme, onToggleTheme,
+}) {
+  return (
+    <header className="mm-topbar flex items-center justify-between px-4 sm:px-6 md:px-10 py-4">
+      <div className="flex items-center gap-2">
+        <button
+          className="mm-icon-btn mm-hamburger"
+          onClick={onToggleSidebar}
+          title={sidebarCollapsed ? "Tampilkan sidebar" : "Sembunyikan sidebar"}
+        >
+          <Menu size={15} />
+        </button>
+        <button onClick={onBack} disabled={!canGoBack} className="mm-icon-btn" title="Kembali"><ChevronLeft size={13} /></button>
+        <button onClick={onForward} disabled={!canGoForward} className="mm-icon-btn" title="Maju"><ChevronRight size={13} /></button>
+      </div>
+      <div className="relative flex gap-2">
+        <button className="mm-icon-btn" onClick={onToggleFxPanel} title="Efek visual">
+          <Settings size={15} />
+        </button>
+        <button className="mm-icon-btn mm-theme-toggle" onClick={onToggleTheme} title="Ganti tema">
+          {theme === "dark" ? <Moon size={15} /> : <Sun size={15} />}
+        </button>
+        {showFxPanel && <FxPanel fx={fx} setFx={setFx} onClose={onCloseFxPanel} />}
+      </div>
+    </header>
+  );
+}
