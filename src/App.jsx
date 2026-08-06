@@ -80,11 +80,17 @@ const themes = {
     bg: "#0A1820", surface: "#0F2731", surface2: "#153542", border: "#1F4B57",
     borderStrong: "#2E6672", text: "#EAFBFC", muted: "#82ADB4",
     accent: "#39C5BB", accent2: "#7CF0E6", spark: "#FF9ED2", amber: "#FFC15E", espresso: "#04141B",
+    glow1: "#39C5BB", glow2: "#7CF0E6", glow3: "#EAFBFC",
   },
   light: {
     bg: "#EFFBFB", surface: "#FFFFFF", surface2: "#DEF3F2", border: "#BFE7E5",
     borderStrong: "#8FD4D0", text: "#07262C", muted: "#4C7A80",
     accent: "#0EA99D", accent2: "#0C8B94", spark: "#E85CA6", amber: "#E29A2E", espresso: "#FFFFFF",
+    // Particle "glow" colors need to stay bright & saturated even in light mode —
+    // the regular accent/accent2 are deliberately darkened there for text contrast,
+    // which made floating particles read as dark ink dots instead of light. These
+    // are a separate, vivid set used only for the particle field.
+    glow1: "#2FD9C7", glow2: "#7CE8DC", glow3: "#FF8FC7",
   },
 };
 
@@ -188,6 +194,8 @@ export default function MikuMusic() {
         "--bg": T.bg, "--surface": T.surface, "--surface2": T.surface2, "--border": T.border,
         "--borderStrong": T.borderStrong, "--text": T.text, "--muted": T.muted, "--accent": T.accent,
         "--accent2": T.accent2, "--berry": T.spark, "--amber": T.amber, "--espresso": T.espresso,
+        "--scrim": "#04141B",
+        "--glow1": T.glow1, "--glow2": T.glow2, "--glow3": T.glow3,
         background: "var(--bg)", color: "var(--text)", minHeight: "100vh", position: "relative",
         fontFamily: "'Work Sans', ui-sans-serif, sans-serif", overflow: "hidden",
       }}
@@ -627,7 +635,7 @@ const BOKEH = Array.from({ length: 16 }).map((_, i) => {
     dur: 16 + (i % 6) * 4,
     delay: -((i % 9) * 1.8),
     variant: (i % 3) + 1,
-    color: i % 2 === 0 ? "var(--accent)" : "var(--accent2)",
+    color: i % 2 === 0 ? "var(--glow1)" : "var(--glow2)",
     peakOp: 0.28 + (i % 4) * 0.05,
   };
 });
@@ -641,7 +649,7 @@ const DUST = Array.from({ length: 55 }).map((_, i) => {
     dur: 5 + (i % 8) * 1.4,
     delay: -((i % 11) * 1.1),
     variant: (i % 3) + 1,
-    color: i % 3 === 0 ? "#eafffb" : i % 3 === 1 ? "var(--accent2)" : "var(--accent)",
+    color: i % 3 === 0 ? "var(--glow3)" : i % 3 === 1 ? "var(--glow2)" : "var(--glow1)",
     peakOp: 0.6 + (i % 4) * 0.1,
   };
 });
@@ -667,7 +675,7 @@ function ParticleField() {
           className={`mm-dust mm-particle-v${p.variant}`}
           style={{
             left: `${p.left}%`, top: `${p.top}%`, width: p.size, height: p.size,
-            background: p.color, boxShadow: `0 0 ${p.size * 2.5}px ${p.size * 0.8}px ${p.color}`,
+            background: p.color, boxShadow: `0 0 ${p.size * 1.8}px ${p.size * 0.5}px ${p.color}`,
             animationDuration: `${p.dur}s`, animationDelay: `${p.delay}s`,
             "--peak-op": p.peakOp,
           }}
@@ -803,13 +811,13 @@ function Style() {
 
       .mm-featured-card { position:relative; z-index:0; height:14rem; border-radius: var(--radius); border:1px solid var(--border); padding:1.25rem; display:flex; flex-direction:column; justify-content:flex-end; cursor:pointer; overflow:hidden; }
       .mm-featured-cover { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:0; }
-      .mm-featured-scrim { position:absolute; inset:0; z-index:1; background: linear-gradient(180deg, color-mix(in srgb, var(--espresso) 10%, transparent) 0%, color-mix(in srgb, var(--espresso) 85%, transparent) 100%); }
+      .mm-featured-scrim { position:absolute; inset:0; z-index:1; background: linear-gradient(180deg, color-mix(in srgb, var(--scrim) 10%, transparent) 0%, color-mix(in srgb, var(--scrim) 85%, transparent) 100%); }
       .mm-featured-card > *:not(.mm-featured-cover):not(.mm-featured-scrim):not(.mm-featured-play) { position:relative; z-index:2; }
       .mm-featured-accent { background: linear-gradient(160deg, color-mix(in srgb, var(--accent) 30%, transparent), var(--surface2)); }
       .mm-featured-berry { background: linear-gradient(160deg, color-mix(in srgb, var(--berry) 26%, transparent), var(--surface2)); }
       .mm-featured-accent2 { background: linear-gradient(160deg, color-mix(in srgb, var(--accent2) 30%, transparent), var(--surface2)); }
-      .mm-featured-icon { display:flex; height:2.25rem; width:2.25rem; align-items:center; justify-content:center; border-radius:999px; background: color-mix(in srgb, var(--espresso) 35%, transparent); color: var(--accent); margin-bottom:.5rem; }
-      .mm-featured-play { position:absolute; right:1rem; top:1rem; z-index:2; display:flex; height:2.25rem; width:2.25rem; align-items:center; justify-content:center; border-radius:999px; background: color-mix(in srgb, var(--espresso) 35%, transparent); color: var(--text); transition: all .2s; }
+      .mm-featured-icon { display:flex; height:2.25rem; width:2.25rem; align-items:center; justify-content:center; border-radius:999px; background: color-mix(in srgb, var(--scrim) 35%, transparent); color: var(--accent); margin-bottom:.5rem; }
+      .mm-featured-play { position:absolute; right:1rem; top:1rem; z-index:2; display:flex; height:2.25rem; width:2.25rem; align-items:center; justify-content:center; border-radius:999px; background: color-mix(in srgb, var(--scrim) 35%, transparent); color: var(--text); transition: all .2s; }
       .mm-featured-card:hover .mm-featured-play { background: var(--accent); color: var(--espresso); }
 
       .mm-lib-icon { display:flex; height:6rem; width:6rem; flex-shrink:0; align-items:center; justify-content:center; border-radius: var(--radius); border:1px solid var(--border); background: var(--surface); color: var(--berry); }
