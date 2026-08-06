@@ -30,7 +30,6 @@ function loadFx() {
 /* ------------------------------------------------------------------ */
 const favoriteSongs = [
   "6J3pPfXLujwsWQpvR6XMgC", "1H2pPtoPS8kNlqCN7HfT6g", "7aux5UvnlBDYlrlwoczifW",
-  "6J3pPfXLujwsWQpvR6XMgC", "1H2pPtoPS8kNlqCN7HfT6g", "7aux5UvnlBDYlrlwoczifW",
   "4e5kaIUjbskvGhpSXZdiA6", "0W0LK0oJEAU2cdYytd27gC", "2DMlu3yzDZkUXXBu8YpkkD",
   "6btL0nv4NlzIGHHQnGDlp5", "5wEy787VwmAnA7GGhEzjHR", "5oEoZdIrz0izZwqFCy6gDa",
   "4F2NudCv50tC2Bqc3dgn9v", "3fao1RoZVQPtkHY8upjezr", "0p5JKxO0pVynWVcWm3lMiP",
