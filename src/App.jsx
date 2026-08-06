@@ -3,7 +3,7 @@ import {
   Home, Heart, ListMusic, User, Disc3, Grid3x3, List,
   Moon, Sun, ChevronLeft, ChevronRight, ArrowUp, Play, Star,
   Crown, Flame, TrendingUp, Sparkles, Music2, Globe, Shuffle,
-  Settings, X, Pin, PinOff,
+  Settings, X, Pin, PinOff, Menu,
 } from "lucide-react";
 
 import ElectricBorder from "./effects/ElectricBorder.jsx";
@@ -103,6 +103,7 @@ export default function MikuMusic() {
   const [showTop, setShowTop] = useState(false);
   const [fx, setFx] = useState(loadFx);
   const [showFxPanel, setShowFxPanel] = useState(false);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   // The currently "pinned" track/playlist — rendered in a persistent bottom
   // bar OUTSIDE the Home/CollectionPage swap, so navigating between pages
   // never unmounts it and playback keeps going.
@@ -121,6 +122,7 @@ export default function MikuMusic() {
   const goTo = (pageId, filterTag = null) => {
     setPendingFilter(filterTag);
     setPage(pageId);
+    setMobileNavOpen(false);
     setNav((n) => {
       const stack = n.stack.slice(0, n.index + 1);
       stack.push({ page: pageId, filter: filterTag });
@@ -152,6 +154,11 @@ export default function MikuMusic() {
   useEffect(() => {
     localStorage.setItem(FX_STORAGE_KEY, JSON.stringify(fx));
   }, [fx]);
+
+  useEffect(() => {
+    document.body.style.overflow = mobileNavOpen ? "hidden" : "";
+    return () => { document.body.style.overflow = ""; };
+  }, [mobileNavOpen]);
 
   const heartBurst = useHeartBurst(["var(--berry)", "#ff5fa3", "#ffb3d1"]);
   const fireHeartBurst = (e) => {
@@ -207,8 +214,11 @@ export default function MikuMusic() {
       <MikuStickers />
 
       <div className="flex h-screen">
+        {mobileNavOpen && (
+          <div className="mm-sidebar-backdrop" onClick={() => setMobileNavOpen(false)} />
+        )}
         {/* ---------------- Sidebar ---------------- */}
-        <aside className="mm-sidebar flex w-60 shrink-0 flex-col justify-between px-6 py-7">
+        <aside className={`mm-sidebar flex w-60 shrink-0 flex-col justify-between px-6 py-7 ${mobileNavOpen ? "mm-sidebar-open" : ""}`}>
           <div>
             <div className="mb-8 flex items-center gap-2.5">
               <div className="mm-logo-badge flex h-8 w-8 items-center justify-center rounded-full">
@@ -216,6 +226,9 @@ export default function MikuMusic() {
               </div>
               <span className="font-display text-lg font-semibold tracking-tight">Zoe Library</span>
               <span className="mm-cv01" title="Character Vocal Series 01 ✨">CV01</span>
+              <button className="mm-sidebar-close" onClick={() => setMobileNavOpen(false)} title="Tutup menu">
+                <X size={16} />
+              </button>
             </div>
 
             <nav className="mb-8 flex flex-col gap-1">
@@ -271,8 +284,11 @@ export default function MikuMusic() {
 
         {/* ---------------- Main ---------------- */}
         <main ref={mainRef} className="mm-main relative flex-1 overflow-y-auto" style={{ paddingBottom: nowPlaying ? 80 : 0 }}>
-          <header className="mm-topbar flex items-center justify-between px-10 py-4">
-            <div className="flex gap-2">
+          <header className="mm-topbar flex items-center justify-between px-4 sm:px-6 md:px-10 py-4">
+            <div className="flex items-center gap-2">
+              <button className="mm-icon-btn mm-hamburger" onClick={() => setMobileNavOpen(true)} title="Menu">
+                <Menu size={15} />
+              </button>
               <button onClick={goBack} disabled={!canGoBack} className="mm-icon-btn" title="Kembali"><ChevronLeft size={13} /></button>
               <button onClick={goForward} disabled={!canGoForward} className="mm-icon-btn" title="Maju"><ChevronRight size={13} /></button>
             </div>
@@ -301,7 +317,7 @@ export default function MikuMusic() {
             />
           )}
 
-          <footer className="mm-footer flex flex-col items-start justify-between gap-4 px-10 py-8 md:flex-row md:items-center">
+          <footer className="mm-footer flex flex-col items-start justify-between gap-4 px-4 sm:px-6 md:px-10 py-8 md:flex-row md:items-center">
             <div>
               <div className="flex items-center gap-2 font-display text-base font-semibold">
                 <Disc3 size={15} className="mm-accent-text" /> <span>Zoe Library</span>
@@ -401,13 +417,13 @@ function HomePage({ T, onNavigate, fx, onHeart }) {
   const colorVar = { accent: "var(--accent)", accent2: "var(--accent2)", berry: "var(--berry)" };
   return (
     <>
-      <section className="relative overflow-hidden px-10 pt-16 pb-24">
+      <section className="relative overflow-hidden px-4 sm:px-6 md:px-10 pt-12 sm:pt-16 pb-16 sm:pb-24">
         <Equalizer />
         <div className="relative max-w-2xl animate-fadeUp">
           <div className="mm-badge mb-5">
             <Crown size={12} /> <span>Koleksi Premium</span>
           </div>
-          <h1 className="font-display text-5xl md:text-6xl font-semibold italic leading-[1.12] tracking-tight">
+          <h1 className="font-display text-3xl sm:text-4xl md:text-6xl font-semibold italic leading-[1.12] tracking-tight">
             Selamat Datang di<br />Semesta Musik Saya
           </h1>
           <p className="mt-5 max-w-lg text-base leading-relaxed mm-muted">
@@ -424,7 +440,7 @@ function HomePage({ T, onNavigate, fx, onHeart }) {
         </div>
       </section>
 
-      <section id="stats" className="grid grid-cols-2 gap-4 px-10 pb-4 pt-2 md:grid-cols-4">
+      <section id="stats" className="grid grid-cols-2 gap-4 px-4 sm:px-6 md:px-10 pb-4 pt-2 md:grid-cols-4">
         {stats.map((s, i) => (
           <div key={i} className="mm-card p-5 mm-hover-lift" style={{ animationDelay: `${i * 60}ms` }}>
             <div className={`mm-stat-icon mm-${s.c}-soft mb-3`}><s.icon size={15} /></div>
@@ -434,7 +450,7 @@ function HomePage({ T, onNavigate, fx, onHeart }) {
         ))}
       </section>
 
-      <section id="featured" className="px-10 py-12">
+      <section id="featured" className="px-4 sm:px-6 md:px-10 py-12">
         <div className="mb-6">
           <h2 className="font-display text-2xl font-semibold">Koleksi Unggulan</h2>
           <p className="mt-1 text-sm mm-muted">Playlist pilihan khusus untukmu</p>
@@ -488,12 +504,12 @@ function CollectionPage({ section, view, setView, fx, initialFilter, nowPlaying,
 
   return (
     <>
-      <section className="px-10 pt-10">
-        <div className="flex items-center gap-6">
+      <section className="px-4 sm:px-6 md:px-10 pt-10">
+        <div className="flex flex-wrap items-center gap-4 sm:gap-6">
           <div className="mm-lib-icon"><section.icon size={30} /></div>
           <div>
             <span className="mm-eyebrow">Koleksi</span>
-            <h1 className="mt-1 font-display text-4xl md:text-5xl font-semibold italic leading-tight">{section.title}</h1>
+            <h1 className="mt-1 font-display text-3xl sm:text-4xl md:text-5xl font-semibold italic leading-tight">{section.title}</h1>
             <p className="mt-3 flex flex-wrap items-center gap-2 text-sm mm-muted">
               <span><User size={11} className="inline -mt-0.5 mr-1" />zyren.in.calm</span>
               <span>•</span><span>{section.count}</span><span>•</span><span>Diperbarui 2026</span>
@@ -502,7 +518,7 @@ function CollectionPage({ section, view, setView, fx, initialFilter, nowPlaying,
         </div>
       </section>
 
-      <div className="mm-filterbar sticky mt-8 flex flex-wrap items-center justify-between gap-3 px-10 py-3">
+      <div className="mm-filterbar sticky mt-8 flex flex-wrap items-center justify-between gap-3 px-4 sm:px-6 md:px-10 py-3">
         {hasGroups && (
           <GlowNav
             items={[{ id: "all", label: "Semua", icon: Globe }, ...section.groups.map((g) => ({ id: g.tag, label: g.label, icon: g.icon }))]}
@@ -517,7 +533,7 @@ function CollectionPage({ section, view, setView, fx, initialFilter, nowPlaying,
       </div>
 
       {blocks.map((b) => (
-        <section key={b.tag} className="px-10 py-10">
+        <section key={b.tag} className="px-4 sm:px-6 md:px-10 py-10">
           <div className="mb-5 flex items-baseline gap-3">
             <h2 className={`flex items-center gap-2 font-display text-xl font-semibold mm-${section.color}-text`}>
               <b.icon size={16} /> <span className="mm-ink-text">{b.label}</span>
@@ -729,6 +745,10 @@ function Style() {
       .mm-amber-text { color: var(--amber); }
 
       .mm-sidebar { background: var(--surface); border-right: 1px solid var(--border); position: relative; z-index: var(--mm-z-sidebar); }
+      .mm-sidebar-close { display: none; margin-left: auto; background: none; border: none; color: var(--muted); cursor: pointer; padding: 4px; }
+      .mm-sidebar-close:hover { color: var(--text); }
+      .mm-hamburger { display: none; }
+      .mm-sidebar-backdrop { display: none; }
       .mm-logo-badge { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: var(--espresso); box-shadow: 0 0 16px color-mix(in srgb, var(--accent) 55%, transparent); }
       .mm-cv01 { font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: .06em; color: var(--accent); border: 1px solid var(--border); border-radius: 999px; padding: 2px 6px; margin-left: auto; opacity: .85; }
 
@@ -821,6 +841,9 @@ function Style() {
       .mm-featured-card:hover .mm-featured-play { background: var(--accent); color: var(--espresso); }
 
       .mm-lib-icon { display:flex; height:6rem; width:6rem; flex-shrink:0; align-items:center; justify-content:center; border-radius: var(--radius); border:1px solid var(--border); background: var(--surface); color: var(--berry); }
+      @media (max-width: 480px) {
+        .mm-lib-icon { height: 4rem; width: 4rem; }
+      }
 
       .mm-filterbar { top: 0; z-index: var(--mm-z-navbar); min-height: 4.2rem; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); background: color-mix(in srgb, var(--bg) 92%, transparent); backdrop-filter: blur(6px); }
       .mm-filter-btn { display:flex; align-items:center; gap:.4rem; border-radius:999px; border:1px solid var(--border); padding:.4rem .85rem; font-size:.72rem; font-weight:600; color: var(--muted); background: transparent; cursor:pointer; transition: all .2s; }
@@ -931,7 +954,18 @@ function Style() {
       ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
 
       @media (max-width: 900px) {
-        .mm-sidebar { display: none; }
+        .mm-hamburger { display: flex; }
+        .mm-sidebar-close { display: flex; }
+        .mm-sidebar {
+          position: fixed; top: 0; bottom: 0; left: 0; width: 82vw; max-width: 300px;
+          transform: translateX(-100%); transition: transform .3s ease; box-shadow: 24px 0 48px rgba(0,0,0,.4);
+          overflow-y: auto;
+        }
+        .mm-sidebar.mm-sidebar-open { transform: translateX(0); }
+        .mm-sidebar-backdrop {
+          display: block; position: fixed; inset: 0; z-index: calc(var(--mm-z-sidebar) - 1);
+          background: rgba(0,0,0,.5); animation: fadeUp .2s ease backwards;
+        }
       }
       @media (prefers-reduced-motion: reduce) {
         *, *::before, *::after { animation-duration: .001ms !important; }
@@ -983,7 +1017,7 @@ function Style() {
       /* ---------------------------------------------------------- */
 
       .mm-fx-panel {
-        position: absolute; top: calc(100% + 10px); right: 0; z-index: var(--mm-z-overlay); width: 260px;
+        position: absolute; top: calc(100% + 10px); right: 0; z-index: var(--mm-z-overlay); width: 260px; max-width: calc(100vw - 2rem);
         border-radius: 14px; border: 1px solid var(--border); background: var(--surface);
         box-shadow: 0 16px 40px rgba(0,0,0,.35); padding: .9rem 1rem; animation: fadeUp .25s ease backwards;
       }
