@@ -6,10 +6,10 @@ import { X } from "lucide-react";
 /*  a Spotify iframe embed can survive a page switch: the DOM node it  */
 /*  lives in has to never be removed.                                  */
 /* ------------------------------------------------------------------ */
-export default function NowPlayingBar({ nowPlaying, onClose }) {
+export default function NowPlayingBar({ nowPlaying, onClose, sidebarCollapsed }) {
   if (!nowPlaying) return null;
   return (
-    <div className="mm-nowplaying">
+    <div className={`mm-nowplaying ${sidebarCollapsed ? "mm-nowplaying-full" : ""}`}>
       <iframe
         title="now-playing"
         src={`https://open.spotify.com/embed/${nowPlaying.kind}/${nowPlaying.id}?utm_source=generator&theme=0`}

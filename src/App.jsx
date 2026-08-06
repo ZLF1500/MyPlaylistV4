@@ -165,7 +165,7 @@ export default function MikuMusic() {
         </main>
       </div>
 
-      <NowPlayingBar nowPlaying={nowPlaying} onClose={() => setNowPlaying(null)} />
+      <NowPlayingBar nowPlaying={nowPlaying} onClose={() => setNowPlaying(null)} sidebarCollapsed={sidebarCollapsed} />
     </div>
   );
 }

@@ -204,6 +204,9 @@
         transition: left .38s var(--ease-smooth);
         animation: slideUpIn .38s var(--ease-swoosh) backwards;
       }
+      /* Sidebar collapsed on desktop (hamburger toggle) — bar should widen
+         to fill the freed-up space instead of leaving a 15rem gap on the left. */
+      .mm-nowplaying.mm-nowplaying-full { left: 0; }
       @keyframes slideUpIn { from { opacity: 0; transform: translateY(100%); } to { opacity: 1; transform: translateY(0); } }
       .mm-nowplaying-close {
         position: absolute; top: -.6rem; right: 1rem; display:flex; height:1.5rem; width:1.5rem;
