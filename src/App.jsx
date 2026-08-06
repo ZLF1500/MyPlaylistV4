@@ -343,10 +343,10 @@ function FxPanel({ fx, setFx, onClose }) {
 /* ------------------------------------------------------------------ */
 function HomePage({ T, onNavigate, fx, onHeart }) {
   const stats = [
-    { icon: ListMusic, num: "2+", label: "Playlist", c: "accent" },
-    { icon: User, num: "2+", label: "Artis", c: "accent2" },
-    { icon: TrendingUp, num: "6", label: "Chart Teratas", c: "berry" },
-    { icon: Heart, num: "100+", label: "Lagu Favorit", c: "accent" },
+    { icon: ListMusic, num: "2", label: "Playlist", c: "accent" },
+    { icon: User, num: "2", label: "Artis", c: "accent2" },
+    { icon: TrendingUp, num: "4", label: "Chart Teratas", c: "berry" },
+    { icon: Heart, num: "28", label: "Lagu Favorit", c: "accent" },
   ];
   const featured = [
     { icon: Flame, title: "Top Hits", desc: "Chart dunia teratas", c: "accent", img: "cover-top-hits.jpg", page: "playlist-hub", filterTag: "top" },
