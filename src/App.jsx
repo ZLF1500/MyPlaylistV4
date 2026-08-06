@@ -3,7 +3,27 @@ import {
   Home, Heart, ListMusic, User, Disc3, Grid3x3, List,
   Moon, Sun, ChevronLeft, ChevronRight, ArrowUp, Play, Star,
   Crown, Flame, TrendingUp, Sparkles, Music2, Globe, Shuffle,
+  Settings, X, Pin, PinOff,
 } from "lucide-react";
+
+import ElectricBorder from "./effects/ElectricBorder.jsx";
+import { useGlowTabs } from "./effects/useGlowTabs.js";
+import { useHeartBurst } from "./effects/useHeartBurst.js";
+
+/* ------------------------------------------------------------------ */
+/*  Visual FX settings — persisted so preferences survive a refresh    */
+/* ------------------------------------------------------------------ */
+const FX_STORAGE_KEY = "mm-fx-settings";
+const defaultFx = { electricBorder: true, glowTabs: true, heartBurst: true };
+
+function loadFx() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(FX_STORAGE_KEY) || "{}");
+    return { ...defaultFx, ...saved };
+  } catch {
+    return { ...defaultFx };
+  }
+}
 
 /* ------------------------------------------------------------------ */
 /*  Data — same Spotify embeds as the original site                    */
@@ -72,11 +92,37 @@ const themes = {
 /* ------------------------------------------------------------------ */
 export default function MikuMusic() {
   const [page, setPage] = useState("home");
+  const [pendingFilter, setPendingFilter] = useState(null);
   const [theme, setTheme] = useState("dark");
-  const [view, setView] = useState("grid");
+  const [view, setView] = useState("list");
   const [showTop, setShowTop] = useState(false);
+  const [fx, setFx] = useState(loadFx);
+  const [showFxPanel, setShowFxPanel] = useState(false);
+  // The currently "pinned" track/playlist — rendered in a persistent bottom
+  // bar OUTSIDE the Home/CollectionPage swap, so navigating between pages
+  // never unmounts it and playback keeps going.
+  const [nowPlaying, setNowPlaying] = useState(null); // { kind, id, num, label }
   const mainRef = useRef(null);
   const T = themes[theme];
+
+  // Central navigation helper: goes to a page and optionally pre-selects a
+  // filter tab on it (e.g. Home's "Top Hits" card -> playlist-hub page,
+  // "Top" tab pre-selected). Always set together so a stale filter from a
+  // previous card click never leaks into an unrelated page.
+  const goTo = (pageId, filterTag = null) => {
+    setPendingFilter(filterTag);
+    setPage(pageId);
+  };
+
+  useEffect(() => {
+    localStorage.setItem(FX_STORAGE_KEY, JSON.stringify(fx));
+  }, [fx]);
+
+  const heartBurst = useHeartBurst(["var(--berry)", "#ff5fa3", "#ffb3d1"]);
+  const fireHeartBurst = (e) => {
+    if (!fx.heartBurst) return;
+    heartBurst(e.clientX, e.clientY);
+  };
 
   useEffect(() => {
     const el = mainRef.current;
@@ -144,7 +190,11 @@ export default function MikuMusic() {
             <h3 className="mm-eyebrow mb-2">Koleksi</h3>
             <nav className="mb-8 flex flex-col gap-1">
               {sections.map((s) => (
-                <button key={s.id} onClick={() => setPage(s.id)} className={`mm-nav-item ${page === s.id ? "active" : ""}`}>
+                <button
+                  key={s.id}
+                  onClick={(e) => { goTo(s.id); if (s.id === "favorite-songs") fireHeartBurst(e); }}
+                  className={`mm-nav-item ${page === s.id ? "active" : ""}`}
+                >
                   <s.icon size={15} /> <span>{s.title}</span>
                 </button>
               ))}
@@ -176,24 +226,34 @@ export default function MikuMusic() {
         </aside>
 
         {/* ---------------- Main ---------------- */}
-        <main ref={mainRef} className="mm-main relative flex-1 overflow-y-auto">
+        <main ref={mainRef} className="mm-main relative flex-1 overflow-y-auto" style={{ paddingBottom: nowPlaying ? 80 : 0 }}>
           <header className="mm-topbar flex items-center justify-between px-10 py-4">
             <div className="flex gap-2">
               <button className="mm-icon-btn"><ChevronLeft size={13} /></button>
               <button className="mm-icon-btn"><ChevronRight size={13} /></button>
             </div>
-            <button className="mm-icon-btn mm-theme-toggle" onClick={() => setTheme(theme === "dark" ? "light" : "dark")} title="Ganti tema">
-              {theme === "dark" ? <Moon size={15} /> : <Sun size={15} />}
-            </button>
+            <div className="relative flex gap-2">
+              <button className="mm-icon-btn" onClick={() => setShowFxPanel((v) => !v)} title="Efek visual">
+                <Settings size={15} />
+              </button>
+              <button className="mm-icon-btn mm-theme-toggle" onClick={() => setTheme(theme === "dark" ? "light" : "dark")} title="Ganti tema">
+                {theme === "dark" ? <Moon size={15} /> : <Sun size={15} />}
+              </button>
+              {showFxPanel && <FxPanel fx={fx} setFx={setFx} onClose={() => setShowFxPanel(false)} />}
+            </div>
           </header>
 
           {page === "home" ? (
-            <HomePage T={T} setPage={setPage} />
+            <HomePage T={T} onNavigate={goTo} fx={fx} onHeart={fireHeartBurst} />
           ) : (
             <CollectionPage
               key={page}
               section={sections.find((s) => s.id === page)}
               view={view} setView={setView}
+              fx={fx}
+              initialFilter={pendingFilter}
+              nowPlaying={nowPlaying}
+              onPlay={setNowPlaying}
             />
           )}
 
@@ -220,12 +280,69 @@ export default function MikuMusic() {
           </button>
         </main>
       </div>
+
+      <NowPlayingBar nowPlaying={nowPlaying} onClose={() => setNowPlaying(null)} />
     </div>
   );
 }
 
 /* ------------------------------------------------------------------ */
-function HomePage({ setPage }) {
+/*  Persistent Now Playing bar — lives OUTSIDE the Home/CollectionPage */
+/*  swap, so it never unmounts when you navigate. This is the only way */
+/*  a Spotify iframe embed can survive a page switch: the DOM node it  */
+/*  lives in has to never be removed.                                  */
+/* ------------------------------------------------------------------ */
+function NowPlayingBar({ nowPlaying, onClose }) {
+  if (!nowPlaying) return null;
+  return (
+    <div className="mm-nowplaying">
+      <iframe
+        title="now-playing"
+        src={`https://open.spotify.com/embed/${nowPlaying.kind}/${nowPlaying.id}?utm_source=generator&theme=0`}
+        width="100%" height="80"
+        style={{ border: "none", display: "block" }}
+        allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+      />
+      <button className="mm-nowplaying-close" onClick={onClose} title="Tutup player">
+        <X size={13} />
+      </button>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Visual FX settings panel                                           */
+/* ------------------------------------------------------------------ */
+function FxPanel({ fx, setFx, onClose }) {
+  const toggle = (key) => setFx((prev) => ({ ...prev, [key]: !prev[key] }));
+
+  return (
+    <div className="mm-fx-panel">
+      <div className="mm-fx-panel-head">
+        <span>Efek Visual</span>
+        <button className="mm-fx-close" onClick={onClose}><X size={13} /></button>
+      </div>
+
+      <label className="mm-fx-row">
+        <span>Electric border di kartu unggulan</span>
+        <input type="checkbox" checked={fx.electricBorder} onChange={() => toggle("electricBorder")} />
+      </label>
+
+      <label className="mm-fx-row">
+        <span>Glowing tab navigasi</span>
+        <input type="checkbox" checked={fx.glowTabs} onChange={() => toggle("glowTabs")} />
+      </label>
+
+      <label className="mm-fx-row">
+        <span>Heart burst (pink)</span>
+        <input type="checkbox" checked={fx.heartBurst} onChange={() => toggle("heartBurst")} />
+      </label>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+function HomePage({ T, onNavigate, fx, onHeart }) {
   const stats = [
     { icon: ListMusic, num: "2+", label: "Playlist", c: "accent" },
     { icon: User, num: "2+", label: "Artis", c: "accent2" },
@@ -233,10 +350,11 @@ function HomePage({ setPage }) {
     { icon: Heart, num: "100+", label: "Lagu Favorit", c: "accent" },
   ];
   const featured = [
-    { icon: Flame, title: "Top Hits", desc: "Chart dunia teratas", c: "accent", img: "cover-top-hits.jpg" },
-    { icon: Heart, title: "Favorit Saya", desc: "Kumpulan lagu tersayang", c: "berry", img: "cover-favorit-saya.jpg" },
-    { icon: Sparkles, title: "Vocaloid Vibes", desc: "PoPiPo & kawan-kawan", c: "accent2", img: "cover-vocaloid-vibes.jpg" },
+    { icon: Flame, title: "Top Hits", desc: "Chart dunia teratas", c: "accent", img: "cover-top-hits.jpg", page: "playlist-hub", filterTag: "top" },
+    { icon: Heart, title: "Favorit Saya", desc: "Kumpulan lagu tersayang", c: "berry", img: "cover-favorit-saya.jpg", page: "favorite-songs", filterTag: null },
+    { icon: Sparkles, title: "Vocaloid Vibes", desc: "PoPiPo & kawan-kawan", c: "accent2", img: "cover-vocaloid-vibes.jpg", page: "playlist-hub", filterTag: "dailymix" },
   ];
+  const colorVar = { accent: "var(--accent)", accent2: "var(--accent2)", berry: "var(--berry)" };
   return (
     <>
       <section className="relative overflow-hidden px-10 pt-16 pb-24">
@@ -252,7 +370,7 @@ function HomePage({ setPage }) {
             Jelajahi playlist pilihan Zoe Libraly, chart teratas, dan artis favorit — ditemani nuansa biru toska ala Hatsune Miku. 🎵
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
-            <button onClick={() => setPage("favorite-songs")} className="mm-btn-primary">
+            <button onClick={() => onNavigate("favorite-songs")} className="mm-btn-primary">
               <Play size={12} /> Jelajahi Koleksi
             </button>
             <a href="#featured" className="mm-btn-secondary">
@@ -278,21 +396,33 @@ function HomePage({ setPage }) {
           <p className="mt-1 text-sm mm-muted">Playlist pilihan khusus untukmu</p>
         </div>
         <div className="grid gap-5 md:grid-cols-3">
-          {featured.map((f, i) => (
-            <div key={i} className={`mm-featured-card mm-hover-lift mm-featured-${f.c}`} onClick={() => setPage("favorite-songs")}>
-              <img
-                src={`/assets/${f.img}`}
-                alt=""
-                className="mm-featured-cover"
-                onError={(e) => { e.currentTarget.style.display = "none"; }}
-              />
-              <div className="mm-featured-scrim" />
-              <div className="mm-featured-icon"><f.icon size={15} /></div>
-              <h3 className="font-display text-lg font-semibold">{f.title}</h3>
-              <p className="text-sm mm-muted">{f.desc}</p>
-              <div className="mm-featured-play"><Play size={12} /></div>
-            </div>
-          ))}
+          {featured.map((f, i) => {
+            const card = (
+              <div
+                className={`mm-featured-card mm-hover-lift mm-featured-${f.c}`}
+                onClick={(e) => { onNavigate(f.page, f.filterTag); if (f.title === "Favorit Saya") onHeart?.(e); }}
+              >
+                <img
+                  src={`/assets/${f.img}`}
+                  alt=""
+                  className="mm-featured-cover"
+                  onError={(e) => { e.currentTarget.style.display = "none"; }}
+                />
+                <div className="mm-featured-scrim" />
+                <div className="mm-featured-icon"><f.icon size={15} /></div>
+                <h3 className="font-display text-lg font-semibold">{f.title}</h3>
+                <p className="text-sm mm-muted">{f.desc}</p>
+                <div className="mm-featured-play"><Play size={12} /></div>
+              </div>
+            );
+            return fx?.electricBorder ? (
+              <ElectricBorder key={i} color={colorVar[f.c]} radius={20} style={{ animationDelay: `${i * 60}ms` }}>
+                {card}
+              </ElectricBorder>
+            ) : (
+              <div key={i}>{card}</div>
+            );
+          })}
         </div>
       </section>
     </>
@@ -300,8 +430,16 @@ function HomePage({ setPage }) {
 }
 
 /* ------------------------------------------------------------------ */
-function CollectionPage({ section, view, setView }) {
-  const [filter, setFilter] = useState("all");
+function CollectionPage({ section, view, setView, fx, initialFilter, nowPlaying, onPlay }) {
+  const [filter, setFilter] = useState(initialFilter || "all");
+  const { containerRef, glowStyle, measure } = useGlowTabs();
+
+  useEffect(() => {
+    if (!fx?.glowTabs) return;
+    const active = containerRef.current?.querySelector(".mm-filter-btn.active");
+    if (active) measure(active);
+  }, [filter, section?.id, fx?.glowTabs]);
+
   if (!section) return null;
 
   const hasGroups = Array.isArray(section.groups);
@@ -327,15 +465,26 @@ function CollectionPage({ section, view, setView }) {
         </div>
       </section>
 
-      <div className="mm-filterbar sticky top-0 z-20 mt-8 flex flex-wrap items-center justify-between gap-3 px-10 py-3">
-        <div className="flex flex-wrap gap-2">
+      <div className="mm-filterbar sticky top-0 z-0 mt-8 flex flex-wrap items-center justify-between gap-3 px-10 py-3">
+        <div
+          ref={containerRef}
+          className={`flex flex-wrap gap-2 ${fx?.glowTabs ? "mm-glow-tabs" : ""}`}
+          style={fx?.glowTabs ? glowStyle : undefined}
+        >
           {hasGroups && (
             <>
-              <button onClick={() => setFilter("all")} className={`mm-filter-btn ${filter === "all" ? "active" : ""}`}>
+              <button
+                onClick={(e) => { setFilter("all"); if (fx?.glowTabs) measure(e.currentTarget); }}
+                className={`mm-filter-btn ${filter === "all" ? "active" : ""}`}
+              >
                 <Globe size={11} /> <span>Semua</span>
               </button>
               {section.groups.map((g) => (
-                <button key={g.tag} onClick={() => setFilter(g.tag)} className={`mm-filter-btn ${filter === g.tag ? "active" : ""}`}>
+                <button
+                  key={g.tag}
+                  onClick={(e) => { setFilter(g.tag); if (fx?.glowTabs) measure(e.currentTarget); }}
+                  className={`mm-filter-btn ${filter === g.tag ? "active" : ""}`}
+                >
                   <g.icon size={11} /> <span>{g.label}</span>
                 </button>
               ))}
@@ -356,21 +505,31 @@ function CollectionPage({ section, view, setView }) {
             <span className="mm-eyebrow-mono">{b.items.length} item</span>
           </div>
           <div className={`grid gap-6 ${view === "list" ? "grid-cols-1" : "sm:grid-cols-2 lg:grid-cols-3"}`}>
-            {b.items.map((it) => (
-              <div key={it.id} className="mm-item group relative animate-fadeUp">
-                <div className={`mm-tab mm-${section.color}-bg`}>{it.num}</div>
-                <div className="mm-item-inner">
-                  <iframe
-                    title={`${b.label}-${it.num}`}
-                    src={`https://open.spotify.com/embed/${it.kind}/${it.id}?utm_source=generator&theme=0`}
-                    width="100%" height={view === "list" ? 152 : it.kind === "track" ? 352 : 380}
-                    style={{ borderRadius: 12, border: "none", display: "block" }}
-                    allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                    loading="lazy"
-                  />
+            {b.items.map((it) => {
+              const isPinned = nowPlaying?.kind === it.kind && nowPlaying?.id === it.id;
+              return (
+                <div key={it.id} className="mm-item group relative animate-fadeUp">
+                  <div className={`mm-tab mm-${section.color}-bg`}>{it.num}</div>
+                  <button
+                    className={`mm-pin-btn ${isPinned ? "active" : ""}`}
+                    onClick={() => onPlay?.(isPinned ? null : { kind: it.kind, id: it.id })}
+                    title={isPinned ? "Lepas dari player bawah" : "Putar & tetap lanjut walau pindah halaman"}
+                  >
+                    {isPinned ? <PinOff size={12} /> : <Pin size={12} />}
+                  </button>
+                  <div className="mm-item-inner">
+                    <iframe
+                      title={`${b.label}-${it.num}`}
+                      src={`https://open.spotify.com/embed/${it.kind}/${it.id}?utm_source=generator&theme=0`}
+                      width="100%" height={view === "list" ? 152 : it.kind === "track" ? 352 : 380}
+                      style={{ borderRadius: 12, border: "none", display: "block" }}
+                      allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                      loading="lazy"
+                    />
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </section>
       ))}
@@ -551,7 +710,7 @@ function Style() {
       .mm-main { background: var(--bg); position: relative; }
 
       /* Scattered sticker slots — sits above the page bg, behind the actual cards/text */
-      .mm-sticker-layer { position: absolute; inset: 0; height: 100%; z-index: 25; pointer-events: none; overflow: hidden; }
+      .mm-sticker-layer { position: absolute; inset: 0; height: 100%; z-index: 5; pointer-events: none; overflow: hidden; }
       .mm-sticker-slot {
         position: absolute; display: flex; align-items: center; justify-content: center; opacity: .85;
         pointer-events: auto; cursor: default; transition: opacity .5s ease;
@@ -630,6 +789,16 @@ function Style() {
       .mm-item-inner { overflow:hidden; border-radius: var(--radius); border:1px solid var(--border); background: var(--surface); padding:.5rem; transition: transform .3s ease; }
       .mm-item:hover .mm-item-inner { transform: translateY(-4px); }
       .mm-tab { position:absolute; top:-0.75rem; left:-0.75rem; z-index:10; display:flex; height:2rem; width:2rem; align-items:center; justify-content:center; border-radius:999px; font-family:'IBM Plex Mono',monospace; font-size:11px; font-weight:600; color: var(--espresso); box-shadow: 0 4px 10px rgba(0,0,0,.25); }
+      .mm-pin-btn {
+        position:absolute; top:-0.75rem; right:-0.75rem; z-index:10; display:flex; height:2rem; width:2rem;
+        align-items:center; justify-content:center; border-radius:999px; border: 1px solid var(--border);
+        background: var(--surface2); color: var(--muted); cursor:pointer; box-shadow: 0 4px 10px rgba(0,0,0,.25);
+        opacity: 0; transform: scale(.85); transition: all .2s ease;
+      }
+      .mm-item:hover .mm-pin-btn, .mm-pin-btn.active { opacity: 1; transform: scale(1); }
+      .mm-pin-btn.active { background: var(--accent); color: var(--espresso); border-color: var(--accent); }
+      .mm-pin-btn:hover { color: var(--text); }
+      .mm-pin-btn.active:hover { color: var(--espresso); }
       .mm-accent-bg { background: var(--accent); }
       .mm-accent2-bg { background: var(--accent2); }
       .mm-berry-bg { background: var(--berry); }
@@ -640,6 +809,22 @@ function Style() {
       .mm-footer { border-top: 1px solid var(--border); }
 
       .mm-scrolltop { position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 40; display:flex; height:2.75rem; width:2.75rem; align-items:center; justify-content:center; border-radius:999px; background: var(--accent); color: var(--espresso); border:none; box-shadow: 0 8px 20px rgba(0,0,0,.3); opacity:0; transform: translateY(10px); pointer-events:none; transition: all .3s ease; cursor:pointer; }
+
+      .mm-nowplaying {
+        position: fixed; left: 15rem; right: 0; bottom: 0; z-index: 45;
+        background: var(--surface); border-top: 1px solid var(--border);
+        box-shadow: 0 -8px 24px rgba(0,0,0,.35); display: flex; align-items: center;
+        animation: fadeUp .3s ease backwards;
+      }
+      .mm-nowplaying-close {
+        position: absolute; top: -.6rem; right: 1rem; display:flex; height:1.5rem; width:1.5rem;
+        align-items:center; justify-content:center; border-radius:999px; border: 1px solid var(--border);
+        background: var(--surface2); color: var(--muted); cursor:pointer; box-shadow: 0 2px 8px rgba(0,0,0,.3);
+      }
+      .mm-nowplaying-close:hover { color: var(--text); }
+      @media (max-width: 900px) {
+        .mm-nowplaying { left: 0; }
+      }
       .mm-scrolltop.show { opacity:1; transform:translateY(0); pointer-events:auto; }
 
       /* Equalizer hero decoration */
@@ -708,6 +893,63 @@ function Style() {
       @media (prefers-reduced-motion: reduce) {
         *, *::before, *::after { animation-duration: .001ms !important; }
       }
+
+      /* ---------------------------------------------------------- */
+      /*  Electric Border (adapted, Miku-themed)                     */
+      /* ---------------------------------------------------------- */
+      .eb-root { position: relative; border-radius: var(--eb-radius); animation: fadeUp .6s ease backwards; }
+      .eb-svg { position: absolute; width: 0; height: 0; }
+      .eb-layers { position: absolute; inset: 0; border-radius: var(--eb-radius); pointer-events: none; }
+      .eb-main { position: absolute; inset: 0; border-radius: var(--eb-radius); border: 1.5px solid var(--eb-color); box-shadow: 0 0 6px color-mix(in srgb, var(--eb-color) 55%, transparent); }
+      .eb-glow1 { position: absolute; inset: 0; border-radius: var(--eb-radius); border: 1.5px solid color-mix(in srgb, var(--eb-color) 55%, white); filter: blur(2px); opacity: .6; }
+      .eb-glow2 { position: absolute; inset: 0; border-radius: var(--eb-radius); border: 2px solid var(--eb-color); filter: blur(9px); opacity: .45; animation: ebPulse 5s ease-in-out infinite; }
+      .eb-overlay1, .eb-overlay2 {
+        position: absolute; inset: 0; border-radius: var(--eb-radius); mix-blend-mode: overlay;
+        transform: scale(1.1); filter: blur(16px); pointer-events: none;
+        background: linear-gradient(-30deg, white, transparent 30%, transparent 70%, white);
+      }
+      .eb-overlay1 { opacity: .35; }
+      .eb-overlay2 { opacity: .18; }
+      .eb-bg-glow {
+        position: absolute; inset: 0; border-radius: var(--eb-radius); filter: blur(30px);
+        transform: scale(1.1); opacity: .3; z-index: -1; pointer-events: none;
+        background: linear-gradient(-30deg, var(--eb-color), transparent, var(--eb-color));
+        animation: ebPulse 5s ease-in-out infinite;
+      }
+      .eb-content { position: relative; z-index: 2; height: 100%; }
+      @keyframes ebPulse { 0%,100% { opacity: .3; } 50% { opacity: .5; } }
+
+      /* ---------------------------------------------------------- */
+      /*  Glowing Tab Navigation (adapted, Miku-themed)               */
+      /* ---------------------------------------------------------- */
+      .mm-glow-tabs { position: relative; }
+      .mm-glow-tabs::before {
+        content: ""; position: absolute; top: 0; left: 0; height: 100%;
+        width: var(--glow-w, 0px); transform: translateX(var(--glow-x, 0px));
+        border-radius: 999px; pointer-events: none; z-index: 0;
+        background: color-mix(in srgb, var(--accent) 22%, transparent);
+        box-shadow: 0 0 18px color-mix(in srgb, var(--accent) 55%, transparent),
+                    inset 0 0 12px color-mix(in srgb, var(--accent) 35%, transparent);
+        transition: transform .35s cubic-bezier(.41,-0.09,.55,1.09), width .35s cubic-bezier(.41,-0.09,.55,1.09);
+      }
+      .mm-glow-tabs .mm-filter-btn { position: relative; z-index: 1; }
+
+      /* ---------------------------------------------------------- */
+      /*  FX settings panel                                          */
+      /* ---------------------------------------------------------- */
+
+      .mm-fx-panel {
+        position: absolute; top: calc(100% + 10px); right: 0; z-index: 50; width: 260px;
+        border-radius: 14px; border: 1px solid var(--border); background: var(--surface);
+        box-shadow: 0 16px 40px rgba(0,0,0,.35); padding: .9rem 1rem; animation: fadeUp .25s ease backwards;
+      }
+      .mm-fx-panel-head { display:flex; align-items:center; justify-content:space-between; font-size:.8rem; font-weight:600; margin-bottom:.6rem; color: var(--text); }
+      .mm-fx-close { background:none; border:none; color: var(--muted); cursor:pointer; display:flex; }
+      .mm-fx-close:hover { color: var(--text); }
+      .mm-fx-row { display:flex; align-items:center; justify-content:space-between; gap:.75rem; font-size:.78rem; color: var(--muted); padding:.4rem 0; cursor:pointer; }
+      .mm-fx-row select { background: var(--surface2); color: var(--text); border:1px solid var(--border); border-radius:8px; padding:.25rem .5rem; font-size:.75rem; }
+      .mm-fx-row-select { cursor: default; }
+      .mm-fx-note { font-size:.68rem; color: var(--muted); opacity:.75; margin-top:.5rem; line-height:1.4; }
     `}</style>
   );
 }
