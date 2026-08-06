@@ -7,7 +7,7 @@ import {
 } from "lucide-react";
 
 import ElectricBorder from "./effects/ElectricBorder.jsx";
-import { useGlowTabs } from "./effects/useGlowTabs.js";
+import GlowNav from "./effects/GlowNav.jsx";
 import { useHeartBurst } from "./effects/useHeartBurst.js";
 
 /* ------------------------------------------------------------------ */
@@ -101,6 +101,7 @@ export default function MikuMusic() {
   // bar OUTSIDE the Home/CollectionPage swap, so navigating between pages
   // never unmounts it and playback keeps going.
   const [nowPlaying, setNowPlaying] = useState(null); // { kind, id, num, label }
+  const [nav, setNav] = useState({ stack: [{ page: "home", filter: null }], index: 0 });
   const mainRef = useRef(null);
   const T = themes[theme];
 
@@ -108,9 +109,38 @@ export default function MikuMusic() {
   // filter tab on it (e.g. Home's "Top Hits" card -> playlist-hub page,
   // "Top" tab pre-selected). Always set together so a stale filter from a
   // previous card click never leaks into an unrelated page.
+  // Also records the move in `nav` so the topbar's back/forward buttons
+  // (previously decorative — no onClick at all) actually work, dropping
+  // any "forward" entries past the current point, same as browser history.
   const goTo = (pageId, filterTag = null) => {
     setPendingFilter(filterTag);
     setPage(pageId);
+    setNav((n) => {
+      const stack = n.stack.slice(0, n.index + 1);
+      stack.push({ page: pageId, filter: filterTag });
+      return { stack, index: stack.length - 1 };
+    });
+  };
+
+  const canGoBack = nav.index > 0;
+  const canGoForward = nav.index < nav.stack.length - 1;
+
+  const goBack = () => {
+    if (!canGoBack) return;
+    const idx = nav.index - 1;
+    const entry = nav.stack[idx];
+    setPendingFilter(entry.filter);
+    setPage(entry.page);
+    setNav((n) => ({ ...n, index: idx }));
+  };
+
+  const goForward = () => {
+    if (!canGoForward) return;
+    const idx = nav.index + 1;
+    const entry = nav.stack[idx];
+    setPendingFilter(entry.filter);
+    setPage(entry.page);
+    setNav((n) => ({ ...n, index: idx }));
   };
 
   useEffect(() => {
@@ -181,7 +211,7 @@ export default function MikuMusic() {
             </div>
 
             <nav className="mb-8 flex flex-col gap-1">
-              <button onClick={() => setPage("home")} className={`mm-nav-item ${page === "home" ? "active" : ""}`}>
+              <button onClick={() => goTo("home")} className={`mm-nav-item ${page === "home" ? "active" : ""}`}>
                 <Home size={15} /> <span>Home</span>
               </button>
             </nav>
@@ -216,9 +246,16 @@ export default function MikuMusic() {
 
           <div className="mm-sidebar-footer pt-4">
             <div className="flex items-center gap-3">
-              <div className="mm-avatar">ZK</div>
+              <div className="mm-avatar">
+                <span>ZK</span>
+                <img
+                  src="/assets/profile.jpg"
+                  alt="Zoe曇りー"
+                  onError={(e) => { e.currentTarget.style.display = "none"; }}
+                />
+              </div>
               <div className="leading-tight">
-                <div className="text-sm font-medium">Zoe Kumori</div>
+                <div className="text-sm font-medium">Zoe曇りー</div>
               </div>
             </div>
           </div>
@@ -228,8 +265,8 @@ export default function MikuMusic() {
         <main ref={mainRef} className="mm-main relative flex-1 overflow-y-auto" style={{ paddingBottom: nowPlaying ? 80 : 0 }}>
           <header className="mm-topbar flex items-center justify-between px-10 py-4">
             <div className="flex gap-2">
-              <button className="mm-icon-btn"><ChevronLeft size={13} /></button>
-              <button className="mm-icon-btn"><ChevronRight size={13} /></button>
+              <button onClick={goBack} disabled={!canGoBack} className="mm-icon-btn" title="Kembali"><ChevronLeft size={13} /></button>
+              <button onClick={goForward} disabled={!canGoForward} className="mm-icon-btn" title="Maju"><ChevronRight size={13} /></button>
             </div>
             <div className="relative flex gap-2">
               <button className="mm-icon-btn" onClick={() => setShowFxPanel((v) => !v)} title="Efek visual">
@@ -358,7 +395,7 @@ function HomePage({ T, onNavigate, fx, onHeart }) {
     <>
       <section className="relative overflow-hidden px-10 pt-16 pb-24">
         <Equalizer />
-        <div className="relative z-10 max-w-2xl animate-fadeUp">
+        <div className="relative max-w-2xl animate-fadeUp">
           <div className="mm-badge mb-5">
             <Crown size={12} /> <span>Koleksi Premium</span>
           </div>
@@ -431,13 +468,6 @@ function HomePage({ T, onNavigate, fx, onHeart }) {
 /* ------------------------------------------------------------------ */
 function CollectionPage({ section, view, setView, fx, initialFilter, nowPlaying, onPlay }) {
   const [filter, setFilter] = useState(initialFilter || "all");
-  const { containerRef, glowStyle, measure } = useGlowTabs();
-
-  useEffect(() => {
-    if (!fx?.glowTabs) return;
-    const active = containerRef.current?.querySelector(".mm-filter-btn.active");
-    if (active) measure(active);
-  }, [filter, section?.id, fx?.glowTabs]);
 
   if (!section) return null;
 
@@ -464,33 +494,16 @@ function CollectionPage({ section, view, setView, fx, initialFilter, nowPlaying,
         </div>
       </section>
 
-      <div className="mm-filterbar sticky top-0 z-0 mt-8 flex flex-wrap items-center justify-between gap-3 px-10 py-3">
-        <div
-          ref={containerRef}
-          className={`flex flex-wrap gap-2 ${fx?.glowTabs ? "mm-glow-tabs" : ""}`}
-          style={fx?.glowTabs ? glowStyle : undefined}
-        >
-          {hasGroups && (
-            <>
-              <button
-                onClick={(e) => { setFilter("all"); if (fx?.glowTabs) measure(e.currentTarget); }}
-                className={`mm-filter-btn ${filter === "all" ? "active" : ""}`}
-              >
-                <Globe size={11} /> <span>Semua</span>
-              </button>
-              {section.groups.map((g) => (
-                <button
-                  key={g.tag}
-                  onClick={(e) => { setFilter(g.tag); if (fx?.glowTabs) measure(e.currentTarget); }}
-                  className={`mm-filter-btn ${filter === g.tag ? "active" : ""}`}
-                >
-                  <g.icon size={11} /> <span>{g.label}</span>
-                </button>
-              ))}
-            </>
-          )}
-        </div>
-        <button onClick={() => setView(view === "grid" ? "list" : "grid")} className="mm-icon-btn">
+      <div className="mm-filterbar sticky mt-8 flex flex-wrap items-center justify-between gap-3 px-10 py-3">
+        {hasGroups && (
+          <GlowNav
+            items={[{ id: "all", label: "Semua", icon: Globe }, ...section.groups.map((g) => ({ id: g.tag, label: g.label, icon: g.icon }))]}
+            active={filter}
+            onSelect={setFilter}
+            enabled={fx?.glowTabs}
+          />
+        )}
+        <button onClick={() => setView(view === "grid" ? "list" : "grid")} className="mm-icon-btn ml-auto">
           {view === "grid" ? <List size={13} /> : <Grid3x3 size={13} />}
         </button>
       </div>
@@ -667,7 +680,7 @@ function ParticleField() {
 function FloatingNotes() {
   const notes = ["♪", "♫", "🥬", "♪", "✨", "♫"];
   return (
-    <div className="mm-notes pointer-events-none fixed inset-0 z-0">
+    <div className="mm-notes pointer-events-none fixed inset-0">
       {notes.map((n, i) => (
         <span key={i} className={`mm-note mm-note-${i}`}>{n}</span>
       ))}
@@ -681,6 +694,24 @@ function Style() {
     <style>{`
       .mm-root, .mm-root * { box-sizing: border-box; }
       .mm-root { --radius: 18px; }
+
+      /* ---------------------------------------------------------- */
+      /*  Layer / z-index scale — top to bottom:                     */
+      /*  sidebar > particle > sticker > navbar (filter tabs) >      */
+      /*  topbar > rest of content                                   */
+      /*  (--mm-z-overlay is for floating UI — player bar, scroll-   */
+      /*  to-top button, fx settings dropdown — kept above all of    */
+      /*  the above since they're transient controls, not layout)    */
+      /* ---------------------------------------------------------- */
+      .mm-root {
+        --mm-z-content: 0;
+        --mm-z-topbar: 10;
+        --mm-z-navbar: 20;
+        --mm-z-sticker: 30;
+        --mm-z-particle: 40;
+        --mm-z-sidebar: 50;
+        --mm-z-overlay: 60;
+      }
       .mm-muted { color: var(--muted); }
       .mm-accent-text { color: var(--accent); }
       .mm-ink-text { color: var(--text); }
@@ -689,7 +720,7 @@ function Style() {
       .mm-spark-text { color: var(--berry); }
       .mm-amber-text { color: var(--amber); }
 
-      .mm-sidebar { background: var(--surface); border-right: 1px solid var(--border); position: relative; z-index: 10; }
+      .mm-sidebar { background: var(--surface); border-right: 1px solid var(--border); position: relative; z-index: var(--mm-z-sidebar); }
       .mm-logo-badge { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: var(--espresso); box-shadow: 0 0 16px color-mix(in srgb, var(--accent) 55%, transparent); }
       .mm-cv01 { font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: .06em; color: var(--accent); border: 1px solid var(--border); border-radius: 999px; padding: 2px 6px; margin-left: auto; opacity: .85; }
 
@@ -703,13 +734,14 @@ function Style() {
 
       .mm-lang { display:flex; align-items:center; gap:.5rem; border:1px solid var(--border); border-radius:12px; padding:.6rem .75rem; font-size:.8rem; color: var(--text); }
 
-      .mm-avatar { display:flex; height:2.25rem; width:2.25rem; align-items:center; justify-content:center; border-radius:999px; background: linear-gradient(135deg, var(--accent), var(--accent2)); color: var(--espresso); font-family:'IBM Plex Mono',monospace; font-size:11px; font-weight:600; }
+      .mm-avatar { position: relative; overflow: hidden; display:flex; height:2.25rem; width:2.25rem; align-items:center; justify-content:center; border-radius:999px; background: linear-gradient(135deg, var(--accent), var(--accent2)); color: var(--espresso); font-family:'IBM Plex Mono',monospace; font-size:11px; font-weight:600; }
+      .mm-avatar img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
       .mm-sidebar-footer { border-top: 1px solid var(--border); }
 
       .mm-main { background: var(--bg); position: relative; }
 
       /* Scattered sticker slots — sits above the page bg, behind the actual cards/text */
-      .mm-sticker-layer { position: absolute; inset: 0; height: 100%; z-index: 5; pointer-events: none; overflow: hidden; }
+      .mm-sticker-layer { position: absolute; inset: 0; height: 100%; z-index: var(--mm-z-sticker); pointer-events: none; overflow: hidden; }
       .mm-sticker-slot {
         position: absolute; display: flex; align-items: center; justify-content: center; opacity: .85;
         pointer-events: auto; cursor: default; transition: opacity .5s ease;
@@ -745,8 +777,10 @@ function Style() {
         33%      { transform: translate(-16px, -18px); }
         66%      { transform: translate(20px, -8px); }
       }
-      .mm-topbar { border-bottom: 1px solid var(--border); position: sticky; top:0; z-index: 15; background: color-mix(in srgb, var(--bg) 90%, transparent); backdrop-filter: blur(6px); }
+      .mm-topbar { border-bottom: 1px solid var(--border); position: sticky; top:0; z-index: var(--mm-z-topbar); min-height: 4.2rem; background: color-mix(in srgb, var(--bg) 90%, transparent); backdrop-filter: blur(6px); }
       .mm-icon-btn { display:flex; height:2.1rem; width:2.1rem; align-items:center; justify-content:center; border-radius:999px; border:1px solid var(--border); color: var(--muted); background: var(--surface); cursor:pointer; transition: all .2s; }
+      .mm-icon-btn:disabled { opacity: .35; cursor: not-allowed; }
+      .mm-icon-btn:disabled:hover { color: var(--muted); }
       .mm-icon-btn:hover { color: var(--text); border-color: var(--borderStrong); }
       .mm-theme-toggle:hover { color: var(--accent); }
 
@@ -767,7 +801,7 @@ function Style() {
       .mm-accent2-soft { background: color-mix(in srgb, var(--accent2) 18%, var(--surface2)); color: var(--accent2); }
       .mm-berry-soft { background: color-mix(in srgb, var(--berry) 18%, var(--surface2)); color: var(--berry); }
 
-      .mm-featured-card { position:relative; height:14rem; border-radius: var(--radius); border:1px solid var(--border); padding:1.25rem; display:flex; flex-direction:column; justify-content:flex-end; cursor:pointer; overflow:hidden; }
+      .mm-featured-card { position:relative; z-index:0; height:14rem; border-radius: var(--radius); border:1px solid var(--border); padding:1.25rem; display:flex; flex-direction:column; justify-content:flex-end; cursor:pointer; overflow:hidden; }
       .mm-featured-cover { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:0; }
       .mm-featured-scrim { position:absolute; inset:0; z-index:1; background: linear-gradient(180deg, color-mix(in srgb, var(--espresso) 10%, transparent) 0%, color-mix(in srgb, var(--espresso) 85%, transparent) 100%); }
       .mm-featured-card > *:not(.mm-featured-cover):not(.mm-featured-scrim):not(.mm-featured-play) { position:relative; z-index:2; }
@@ -780,11 +814,12 @@ function Style() {
 
       .mm-lib-icon { display:flex; height:6rem; width:6rem; flex-shrink:0; align-items:center; justify-content:center; border-radius: var(--radius); border:1px solid var(--border); background: var(--surface); color: var(--berry); }
 
-      .mm-filterbar { border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); background: color-mix(in srgb, var(--bg) 92%, transparent); backdrop-filter: blur(6px); }
+      .mm-filterbar { top: 0; z-index: var(--mm-z-navbar); min-height: 4.2rem; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); background: color-mix(in srgb, var(--bg) 92%, transparent); backdrop-filter: blur(6px); }
       .mm-filter-btn { display:flex; align-items:center; gap:.4rem; border-radius:999px; border:1px solid var(--border); padding:.4rem .85rem; font-size:.72rem; font-weight:600; color: var(--muted); background: transparent; cursor:pointer; transition: all .2s; }
       .mm-filter-btn:hover { color: var(--text); }
       .mm-filter-btn.active { background: var(--accent); border-color: var(--accent); color: var(--espresso); }
 
+      .mm-item { position: relative; z-index: 0; }
       .mm-item-inner { overflow:hidden; border-radius: var(--radius); border:1px solid var(--border); background: var(--surface); padding:.5rem; transition: transform .3s ease; }
       .mm-item:hover .mm-item-inner { transform: translateY(-4px); }
       .mm-tab { position:absolute; top:-0.75rem; left:-0.75rem; z-index:10; display:flex; height:2rem; width:2rem; align-items:center; justify-content:center; border-radius:999px; font-family:'IBM Plex Mono',monospace; font-size:11px; font-weight:600; color: var(--espresso); box-shadow: 0 4px 10px rgba(0,0,0,.25); }
@@ -807,10 +842,10 @@ function Style() {
 
       .mm-footer { border-top: 1px solid var(--border); }
 
-      .mm-scrolltop { position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 40; display:flex; height:2.75rem; width:2.75rem; align-items:center; justify-content:center; border-radius:999px; background: var(--accent); color: var(--espresso); border:none; box-shadow: 0 8px 20px rgba(0,0,0,.3); opacity:0; transform: translateY(10px); pointer-events:none; transition: all .3s ease; cursor:pointer; }
+      .mm-scrolltop { position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: var(--mm-z-overlay); display:flex; height:2.75rem; width:2.75rem; align-items:center; justify-content:center; border-radius:999px; background: var(--accent); color: var(--espresso); border:none; box-shadow: 0 8px 20px rgba(0,0,0,.3); opacity:0; transform: translateY(10px); pointer-events:none; transition: all .3s ease; cursor:pointer; }
 
       .mm-nowplaying {
-        position: fixed; left: 15rem; right: 0; bottom: 0; z-index: 45;
+        position: fixed; left: 15rem; right: 0; bottom: 0; z-index: var(--mm-z-overlay);
         background: var(--surface); border-top: 1px solid var(--border);
         box-shadow: 0 -8px 24px rgba(0,0,0,.35); display: flex; align-items: center;
         animation: fadeUp .3s ease backwards;
@@ -841,7 +876,7 @@ function Style() {
 
       /* Floating musical notes / leek */
       /* Blue bokeh particle field */
-      .mm-particle-layer { position: fixed; inset: 0; z-index: 2; pointer-events: none; overflow: hidden; }
+      .mm-particle-layer { position: fixed; inset: 0; z-index: var(--mm-z-particle); pointer-events: none; overflow: hidden; }
       .mm-bokeh { position: absolute; border-radius: 50%; filter: blur(6px); opacity: 0; animation-timing-function: ease-in-out; animation-iteration-count: infinite; }
       .mm-dust { position: absolute; border-radius: 50%; opacity: 0; animation-timing-function: ease-in-out; animation-iteration-count: infinite; }
       .mm-particle-v1 { animation-name: particleDriftA; }
@@ -869,6 +904,7 @@ function Style() {
         100% { transform: translate(-26px, -300px) scale(1); opacity: 0; }
       }
 
+      .mm-notes { z-index: var(--mm-z-particle); }
       .mm-note { position:absolute; font-size: 1.1rem; color: var(--accent2); opacity: .3; animation: noteFloat 9s ease-in-out infinite; }
       .mm-note-0 { top: 12%; left: 8%; animation-delay: 0s; }
       .mm-note-1 { top: 65%; left: 4%; animation-delay: 1.4s; font-size: 1.4rem; }
@@ -896,7 +932,7 @@ function Style() {
       /* ---------------------------------------------------------- */
       /*  Electric Border (adapted, Miku-themed)                     */
       /* ---------------------------------------------------------- */
-      .eb-root { position: relative; border-radius: var(--eb-radius); animation: fadeUp .6s ease backwards; }
+      .eb-root { position: relative; z-index: 0; border-radius: var(--eb-radius); animation: fadeUp .6s ease backwards; }
       .eb-svg { position: absolute; width: 0; height: 0; }
       .eb-layers { position: absolute; inset: 0; border-radius: var(--eb-radius); pointer-events: none; }
       .eb-main { position: absolute; inset: 0; border-radius: var(--eb-radius); border: 1.5px solid var(--eb-color); box-shadow: 0 0 6px color-mix(in srgb, var(--eb-color) 55%, transparent); }
@@ -919,26 +955,27 @@ function Style() {
       @keyframes ebPulse { 0%,100% { opacity: .3; } 50% { opacity: .5; } }
 
       /* ---------------------------------------------------------- */
-      /*  Glowing Tab Navigation (adapted, Miku-themed)               */
+      /*  Glowing Tab Navigation (adapted, Miku-themed) — single      */
+      /*  sliding-pill track, not per-button borders + overlay        */
       /* ---------------------------------------------------------- */
-      .mm-glow-tabs { position: relative; }
-      .mm-glow-tabs::before {
-        content: ""; position: absolute; top: 0; left: 0; height: 100%;
-        width: var(--glow-w, 0px); transform: translateX(var(--glow-x, 0px));
-        border-radius: 999px; pointer-events: none; z-index: 0;
-        background: color-mix(in srgb, var(--accent) 22%, transparent);
+      .mm-glow-nav { position: relative; display: inline-flex; gap: 2px; padding: 4px; border-radius: 999px; background: var(--surface); border: 1px solid var(--border); }
+      .mm-glow-indicator {
+        position: absolute; top: 4px; bottom: 4px; left: 0; border-radius: 999px; pointer-events: none; z-index: 0;
+        background: linear-gradient(135deg, var(--accent), var(--accent2));
         box-shadow: 0 0 18px color-mix(in srgb, var(--accent) 55%, transparent),
-                    inset 0 0 12px color-mix(in srgb, var(--accent) 35%, transparent);
+                    0 0 4px color-mix(in srgb, var(--accent2) 60%, transparent);
         transition: transform .35s cubic-bezier(.41,-0.09,.55,1.09), width .35s cubic-bezier(.41,-0.09,.55,1.09);
       }
-      .mm-glow-tabs .mm-filter-btn { position: relative; z-index: 1; }
+      .mm-glow-tab { position: relative; z-index: 1; display: flex; align-items: center; gap: .4rem; padding: .4rem .85rem; border-radius: 999px; border: none; background: transparent; font-size: .72rem; font-weight: 600; color: var(--muted); cursor: pointer; transition: color .2s; }
+      .mm-glow-tab:hover { color: var(--text); }
+      .mm-glow-tab.active { color: var(--espresso); }
 
       /* ---------------------------------------------------------- */
       /*  FX settings panel                                          */
       /* ---------------------------------------------------------- */
 
       .mm-fx-panel {
-        position: absolute; top: calc(100% + 10px); right: 0; z-index: 50; width: 260px;
+        position: absolute; top: calc(100% + 10px); right: 0; z-index: var(--mm-z-overlay); width: 260px;
         border-radius: 14px; border: 1px solid var(--border); background: var(--surface);
         box-shadow: 0 16px 40px rgba(0,0,0,.35); padding: .9rem 1rem; animation: fadeUp .25s ease backwards;
       }
