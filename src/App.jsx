@@ -206,7 +206,7 @@ export default function MikuMusic() {
               <div className="mm-logo-badge flex h-8 w-8 items-center justify-center rounded-full">
                 <Disc3 size={17} strokeWidth={2.2} />
               </div>
-              <span className="font-display text-lg font-semibold tracking-tight">Zoe Libraly</span>
+              <span className="font-display text-lg font-semibold tracking-tight">Zoe Library</span>
               <span className="mm-cv01" title="Character Vocal Series 01 ✨">CV01</span>
             </div>
 
@@ -296,9 +296,9 @@ export default function MikuMusic() {
           <footer className="mm-footer flex flex-col items-start justify-between gap-4 px-10 py-8 md:flex-row md:items-center">
             <div>
               <div className="flex items-center gap-2 font-display text-base font-semibold">
-                <Disc3 size={15} className="mm-accent-text" /> <span>Zoe Libraly</span>
+                <Disc3 size={15} className="mm-accent-text" /> <span>Zoe Library</span>
               </div>
-              <p className="mt-1 text-xs mm-muted">© 2026 Zoe Libraly · dibuat dengan 💙 untuk Miku</p>
+              <p className="mt-1 text-xs mm-muted">© 2026 Zoe Library · dibuat dengan 💙 untuk Miku</p>
             </div>
             <div className="flex gap-5 text-xs mm-muted">
               <a href="#" className="hover:opacity-80">About</a>
@@ -403,7 +403,7 @@ function HomePage({ T, onNavigate, fx, onHeart }) {
             Selamat Datang di<br />Semesta Musik Saya
           </h1>
           <p className="mt-5 max-w-lg text-base leading-relaxed mm-muted">
-            Jelajahi playlist pilihan Zoe Libraly, chart teratas, dan artis favorit — ditemani nuansa biru toska ala Hatsune Miku. 🎵
+            Jelajahi playlist pilihan Zoe Library, chart teratas, dan artis favorit — ditemani nuansa biru toska ala Hatsune Miku. 🎵
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <button onClick={() => onNavigate("favorite-songs")} className="mm-btn-primary">
