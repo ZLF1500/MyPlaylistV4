@@ -833,11 +833,17 @@ function Style() {
       .mm-featured-cover { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:0; }
       .mm-featured-scrim { position:absolute; inset:0; z-index:1; background: linear-gradient(180deg, color-mix(in srgb, var(--scrim) 10%, transparent) 0%, color-mix(in srgb, var(--scrim) 85%, transparent) 100%); }
       .mm-featured-card > *:not(.mm-featured-cover):not(.mm-featured-scrim):not(.mm-featured-play) { position:relative; z-index:2; }
+      /* Title/desc always sit on the dark photo scrim (which stays dark in both
+         themes on purpose, so the cover art reads), so their text must stay
+         light in both themes too — not follow --text/--muted, which flip dark
+         in light mode and go near-invisible against that scrim. */
+      .mm-featured-card h3 { color: #F5FDFD; }
+      .mm-featured-card p.mm-muted { color: rgba(245, 253, 253, 0.78); }
       .mm-featured-accent { background: linear-gradient(160deg, color-mix(in srgb, var(--accent) 30%, transparent), var(--surface2)); }
       .mm-featured-berry { background: linear-gradient(160deg, color-mix(in srgb, var(--berry) 26%, transparent), var(--surface2)); }
       .mm-featured-accent2 { background: linear-gradient(160deg, color-mix(in srgb, var(--accent2) 30%, transparent), var(--surface2)); }
       .mm-featured-icon { display:flex; height:2.25rem; width:2.25rem; align-items:center; justify-content:center; border-radius:999px; background: color-mix(in srgb, var(--scrim) 35%, transparent); color: var(--accent); margin-bottom:.5rem; }
-      .mm-featured-play { position:absolute; right:1rem; top:1rem; z-index:2; display:flex; height:2.25rem; width:2.25rem; align-items:center; justify-content:center; border-radius:999px; background: color-mix(in srgb, var(--scrim) 35%, transparent); color: var(--text); transition: all .2s; }
+      .mm-featured-play { position:absolute; right:1rem; top:1rem; z-index:2; display:flex; height:2.25rem; width:2.25rem; align-items:center; justify-content:center; border-radius:999px; background: color-mix(in srgb, var(--scrim) 35%, transparent); color: #F5FDFD; transition: all .2s; }
       .mm-featured-card:hover .mm-featured-play { background: var(--accent); color: var(--espresso); }
 
       .mm-lib-icon { display:flex; height:6rem; width:6rem; flex-shrink:0; align-items:center; justify-content:center; border-radius: var(--radius); border:1px solid var(--border); background: var(--surface); color: var(--berry); }
