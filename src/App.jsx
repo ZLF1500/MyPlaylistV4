@@ -935,19 +935,19 @@ function Style() {
       .eb-root { position: relative; z-index: 0; border-radius: var(--eb-radius); animation: fadeUp .6s ease backwards; }
       .eb-svg { position: absolute; width: 0; height: 0; }
       .eb-layers { position: absolute; inset: 0; border-radius: var(--eb-radius); pointer-events: none; }
-      .eb-main { position: absolute; inset: 0; border-radius: var(--eb-radius); border: 1.5px solid var(--eb-color); box-shadow: 0 0 6px color-mix(in srgb, var(--eb-color) 55%, transparent); }
-      .eb-glow1 { position: absolute; inset: 0; border-radius: var(--eb-radius); border: 1.5px solid color-mix(in srgb, var(--eb-color) 55%, white); filter: blur(2px); opacity: .6; }
-      .eb-glow2 { position: absolute; inset: 0; border-radius: var(--eb-radius); border: 2px solid var(--eb-color); filter: blur(9px); opacity: .45; animation: ebPulse 5s ease-in-out infinite; }
+      .eb-main { position: absolute; inset: 0; border-radius: var(--eb-radius); border: 1.5px solid var(--eb-color); box-shadow: 0 0 10px color-mix(in srgb, var(--eb-color) 65%, transparent); }
+      .eb-glow1 { position: absolute; inset: 0; border-radius: var(--eb-radius); border: 1.5px solid color-mix(in srgb, var(--eb-color) 55%, white); filter: blur(2px); opacity: .65; }
+      .eb-glow2 { position: absolute; inset: 0; border-radius: var(--eb-radius); border: 2px solid var(--eb-color); filter: blur(7px); opacity: .5; animation: ebPulse 5s ease-in-out infinite; }
       .eb-overlay1, .eb-overlay2 {
         position: absolute; inset: 0; border-radius: var(--eb-radius); mix-blend-mode: overlay;
-        transform: scale(1.1); filter: blur(16px); pointer-events: none;
+        transform: scale(1.06); filter: blur(12px); pointer-events: none;
         background: linear-gradient(-30deg, white, transparent 30%, transparent 70%, white);
       }
-      .eb-overlay1 { opacity: .35; }
-      .eb-overlay2 { opacity: .18; }
+      .eb-overlay1 { opacity: .3; }
+      .eb-overlay2 { opacity: .16; }
       .eb-bg-glow {
-        position: absolute; inset: 0; border-radius: var(--eb-radius); filter: blur(30px);
-        transform: scale(1.1); opacity: .3; z-index: -1; pointer-events: none;
+        position: absolute; inset: 0; border-radius: var(--eb-radius); filter: blur(20px);
+        transform: scale(1.06); opacity: .32; z-index: -1; pointer-events: none;
         background: linear-gradient(-30deg, var(--eb-color), transparent, var(--eb-color));
         animation: ebPulse 5s ease-in-out infinite;
       }
