@@ -511,7 +511,7 @@ function CollectionPage({ section, view, setView, fx, initialFilter, nowPlaying,
             <span className="mm-eyebrow">Koleksi</span>
             <h1 className="mt-1 font-display text-3xl sm:text-4xl md:text-5xl font-semibold italic leading-tight">{section.title}</h1>
             <p className="mt-3 flex flex-wrap items-center gap-2 text-sm mm-muted">
-              <span><User size={11} className="inline -mt-0.5 mr-1" />zyren.in.calm</span>
+              <span><User size={11} className="inline -mt-0.5 mr-1" />zoe.kumori</span>
               <span>•</span><span>{section.count}</span><span>•</span><span>Diperbarui 2026</span>
             </p>
           </div>
