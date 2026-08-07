@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import { Moon, Sun, ChevronLeft, ChevronRight, Settings, Menu } from "lucide-react";
 import FxPanel from "./FxPanel.jsx";
 
@@ -8,6 +9,7 @@ export default function TopBar({
   showFxPanel, onToggleFxPanel, onCloseFxPanel, fx, setFx,
   theme, onToggleTheme,
 }) {
+  const fxBtnRef = useRef(null);
   return (
     <header className="mm-topbar flex items-center justify-between px-4 sm:px-6 md:px-10 py-4">
       <div className="flex items-center gap-2">
@@ -22,13 +24,13 @@ export default function TopBar({
         <button onClick={onForward} disabled={!canGoForward} className="mm-icon-btn" title="Maju"><ChevronRight size={13} /></button>
       </div>
       <div className="relative flex gap-2">
-        <button className="mm-icon-btn" onClick={onToggleFxPanel} title="Efek visual">
+        <button ref={fxBtnRef} className="mm-icon-btn" onClick={onToggleFxPanel} title="Efek visual">
           <Settings size={15} />
         </button>
         <button className="mm-icon-btn mm-theme-toggle" onClick={onToggleTheme} title="Ganti tema">
           {theme === "dark" ? <Moon size={15} /> : <Sun size={15} />}
         </button>
-        {showFxPanel && <FxPanel fx={fx} setFx={setFx} onClose={onCloseFxPanel} />}
+        {showFxPanel && <FxPanel fx={fx} setFx={setFx} onClose={onCloseFxPanel} anchorRef={fxBtnRef} />}
       </div>
     </header>
   );

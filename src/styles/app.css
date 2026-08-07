@@ -41,9 +41,7 @@
       .mm-accent-text { color: var(--accent); }
       .mm-ink-text { color: var(--text); }
       .mm-berry-text { color: var(--berry); }
-      .mm-accent2-text { color: var(--accent2); }
       .mm-spark-text { color: var(--berry); }
-      .mm-amber-text { color: var(--amber); }
 
       .mm-sidebar {
         background: var(--surface); border-right: 1px solid var(--border); position: relative;
@@ -186,11 +184,8 @@
       .mm-pin-btn:hover { color: var(--text); }
       .mm-pin-btn.active:hover { color: var(--espresso); }
       .mm-accent-bg { background: var(--accent); }
-      .mm-accent2-bg { background: var(--accent2); }
       .mm-berry-bg { background: var(--berry); }
       .mm-spark-bg { background: var(--berry); }
-      .mm-amber-bg { background: var(--amber); }
-      .mm-amber-soft { background: color-mix(in srgb, var(--amber) 18%, var(--surface2)); color: var(--amber); }
 
       .mm-footer { border-top: 1px solid var(--border); }
 
@@ -271,16 +266,6 @@
         100% { transform: translate(-26px, -300px) scale(1); opacity: 0; }
       }
 
-      .mm-notes { z-index: var(--mm-z-particle); }
-      .mm-note { position:absolute; font-size: 1.1rem; color: var(--accent2); opacity: .3; animation: noteFloat 9s ease-in-out infinite; }
-      .mm-note-0 { top: 12%; left: 8%; animation-delay: 0s; }
-      .mm-note-1 { top: 65%; left: 4%; animation-delay: 1.4s; font-size: 1.4rem; }
-      .mm-note-2 { top: 20%; left: 92%; animation-delay: .6s; font-size: 1.3rem; }
-      .mm-note-3 { top: 78%; left: 88%; animation-delay: 2.2s; }
-      .mm-note-4 { top: 45%; left: 50%; animation-delay: 3s; opacity:.15; }
-      .mm-note-5 { top: 8%; left: 45%; animation-delay: 1.8s; }
-      @keyframes noteFloat { 0%,100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-22px) rotate(10deg); } }
-
       @keyframes fadeUp { from { opacity:0; transform: translateY(14px); } to { opacity:1; transform:translateY(0); } }
       .animate-fadeUp { animation: fadeUp .5s var(--ease-swoosh) backwards; }
 
@@ -353,7 +338,7 @@
       /* ---------------------------------------------------------- */
 
       .mm-fx-panel {
-        position: absolute; top: calc(100% + 10px); right: 0; z-index: var(--mm-z-overlay); width: 260px; max-width: calc(100vw - 2rem);
+        z-index: var(--mm-z-overlay); width: 260px; max-width: calc(100vw - 2rem);
         border-radius: 14px; border: 1px solid var(--border); background: var(--surface);
         box-shadow: 0 16px 40px rgba(0,0,0,.35); padding: .9rem 1rem;
         transform-origin: top right; animation: dropdownIn .22s var(--ease-swoosh) backwards;
@@ -368,8 +353,5 @@
       .mm-fx-close { background:none; border:none; color: var(--muted); cursor:pointer; display:flex; }
       .mm-fx-close:hover { color: var(--text); }
       .mm-fx-row { display:flex; align-items:center; justify-content:space-between; gap:.75rem; font-size:.78rem; color: var(--muted); padding:.4rem 0; cursor:pointer; }
-      .mm-fx-row select { background: var(--surface2); color: var(--text); border:1px solid var(--border); border-radius:8px; padding:.25rem .5rem; font-size:.75rem; }
-      .mm-fx-row-select { cursor: default; }
-      .mm-fx-note { font-size:.68rem; color: var(--muted); opacity:.75; margin-top:.5rem; line-height:1.4; }
       .mm-fx-divider { height: 1px; background: var(--border); margin: .5rem 0 .25rem; }
       .mm-fx-group-label { font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); opacity: .7; margin-bottom: .1rem; }
