@@ -33,6 +33,7 @@ export default function MikuMusic() {
   // never unmounts it and playback keeps going.
   const [nowPlaying, setNowPlaying] = useState(null); // { kind, id, num, label }
   const [nowPlayingExpanded, setNowPlayingExpanded] = useState(false);
+  const [nowPlayingFullscreen, setNowPlayingFullscreen] = useState(false);
   const mainRef = useRef(null);
   const T = themes[theme];
 
@@ -40,9 +41,16 @@ export default function MikuMusic() {
     useNavStack("home", { onNavigate: () => setMobileNavOpen(false) });
 
   useEffect(() => {
-    document.body.style.overflow = mobileNavOpen ? "hidden" : "";
+    document.body.style.overflow = (mobileNavOpen || nowPlayingFullscreen) ? "hidden" : "";
     return () => { document.body.style.overflow = ""; };
-  }, [mobileNavOpen]);
+  }, [mobileNavOpen, nowPlayingFullscreen]);
+
+  useEffect(() => {
+    if (!nowPlayingFullscreen) return;
+    const onKey = (e) => { if (e.key === "Escape") setNowPlayingFullscreen(false); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [nowPlayingFullscreen]);
 
   // If the window is resized down into mobile range while the desktop
   // sidebar happens to be collapsed, drop the collapsed state — otherwise
@@ -74,6 +82,16 @@ export default function MikuMusic() {
     el.addEventListener("scroll", onScroll);
     return () => el.removeEventListener("scroll", onScroll);
   }, [page]);
+
+  useEffect(() => {
+    if (nowPlaying?.kind === "track" && nowPlayingFullscreen) setNowPlayingFullscreen(false);
+  }, [nowPlaying, nowPlayingFullscreen]);
+
+  const closeNowPlaying = () => {
+    setNowPlaying(null);
+    setNowPlayingExpanded(false);
+    setNowPlayingFullscreen(false);
+  };
 
   const sections = [
     { id: "favorite-songs", title: "Lagu Favorit", icon: Heart, color: "berry", items: favoriteSongs, count: `${favoriteSongs.length} lagu` },
@@ -175,10 +193,12 @@ export default function MikuMusic() {
 
       <NowPlayingBar
         nowPlaying={nowPlaying}
-        onClose={() => setNowPlaying(null)}
+        onClose={closeNowPlaying}
         sidebarCollapsed={sidebarCollapsed}
         expanded={nowPlayingExpanded}
         onToggleExpand={() => setNowPlayingExpanded((v) => !v)}
+        fullscreen={nowPlayingFullscreen}
+        onToggleFullscreen={() => setNowPlayingFullscreen((v) => !v)}
       />
     </div>
   );

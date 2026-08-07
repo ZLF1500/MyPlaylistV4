@@ -196,20 +196,26 @@
         position: fixed; left: 15rem; right: 0; bottom: 0; z-index: var(--mm-z-overlay);
         background: var(--surface); border-top: 1px solid var(--border);
         box-shadow: 0 -8px 24px rgba(0,0,0,.35); display: flex; align-items: flex-start;
-        transition: left .38s var(--ease-smooth);
+        transition: left .38s var(--ease-smooth), top .38s var(--ease-smooth), border-radius .38s var(--ease-smooth);
         animation: slideUpIn .38s var(--ease-swoosh) backwards;
       }
       .mm-nowplaying.mm-nowplaying-full { left: 0; }
+      .mm-nowplaying.mm-nowplaying-fullscreen {
+        left: 0; top: 0; border-top: none; z-index: 9999;
+      }
       @keyframes slideUpIn { from { opacity: 0; transform: translateY(100%); } to { opacity: 1; transform: translateY(0); } }
-      /* Wraps the iframe so height (compact 80px vs expanded 352/380px) can
-         animate smoothly — the iframe itself just fills whatever height
-         this wrapper currently has. Spotify's embed redraws its own layout
-         (compact row vs full card w/ artwork) based on that real height. */
+      /* Wraps the iframe so height (compact 80px vs expanded 352/380px vs
+         fullscreen 100%) can animate smoothly — the iframe itself just
+         fills whatever height this wrapper currently has. Spotify's embed
+         redraws its own layout (compact row vs full card w/ artwork) based
+         on that real height. */
       .mm-nowplaying-frame { flex: 1; overflow: hidden; transition: height .38s var(--ease-smooth); }
       .mm-nowplaying-controls {
         position: absolute; top: -.6rem; right: 1rem; z-index: 1;
         display: flex; align-items: center; gap: .4rem;
+        transition: top .38s var(--ease-smooth);
       }
+      .mm-nowplaying-fullscreen .mm-nowplaying-controls { top: 1.25rem; right: 1.5rem; }
       .mm-nowplaying-btn {
         display:flex; height:1.5rem; width:1.5rem;
         align-items:center; justify-content:center; border-radius:999px; border: 1px solid var(--border);
