@@ -8,6 +8,7 @@ import { favoriteSongs, topSongs, myPlaylists, myArtists, myAlbums, dailyMix } f
 import { usePreferences } from "./hooks/usePreferences.js";
 import { useNavStack } from "./hooks/useNavStack.js";
 import { useHeartBurst } from "./effects/useHeartBurst.js";
+import { useLanguage } from "./i18n/LanguageContext.jsx";
 
 import Sidebar from "./components/Sidebar.jsx";
 import TopBar from "./components/TopBar.jsx";
@@ -21,6 +22,7 @@ import CollectionPage from "./pages/CollectionPage.jsx";
 /* ------------------------------------------------------------------ */
 export default function MikuMusic() {
   const { theme, toggleTheme, fx, setFx } = usePreferences();
+  const { t } = useLanguage();
   const [view, setView] = useState("list");
   const [showTop, setShowTop] = useState(false);
   const [showFxPanel, setShowFxPanel] = useState(false);
@@ -94,23 +96,26 @@ export default function MikuMusic() {
   };
 
   const sections = [
-    { id: "favorite-songs", title: "Lagu Favorit", icon: Heart, color: "berry", items: favoriteSongs, count: `${favoriteSongs.length} lagu` },
     {
-      id: "playlist-hub", title: "Playlist", icon: ListMusic, color: "accent",
-      groups: [
-        { tag: "top", label: "Top", icon: TrendingUp, items: topSongs },
-        { tag: "dailymix", label: "Daily", icon: Shuffle, items: dailyMix },
-        { tag: "playlist", label: "Playlist", icon: ListMusic, items: myPlaylists },
-      ],
-      count: `${topSongs.length + dailyMix.length + myPlaylists.length} item`,
+      id: "favorite-songs", title: t("section.favoriteSongs.title"), icon: Heart, color: "berry",
+      items: favoriteSongs, count: t("common.songsCount", { n: favoriteSongs.length }),
     },
     {
-      id: "artist-album-hub", title: "Artis & Album", icon: User, color: "spark",
+      id: "playlist-hub", title: t("section.playlistHub.title"), icon: ListMusic, color: "accent",
       groups: [
-        { tag: "artist", label: "Artis", icon: User, items: myArtists },
-        { tag: "album", label: "Album", icon: Disc3, items: myAlbums },
+        { tag: "top", label: t("group.top"), icon: TrendingUp, items: topSongs },
+        { tag: "dailymix", label: t("group.daily"), icon: Shuffle, items: dailyMix },
+        { tag: "playlist", label: t("group.playlist"), icon: ListMusic, items: myPlaylists },
       ],
-      count: `${myArtists.length + myAlbums.length} item`,
+      count: t("common.itemsCount", { n: topSongs.length + dailyMix.length + myPlaylists.length }),
+    },
+    {
+      id: "artist-album-hub", title: t("section.artistAlbumHub.title"), icon: User, color: "spark",
+      groups: [
+        { tag: "artist", label: t("group.artist"), icon: User, items: myArtists },
+        { tag: "album", label: t("group.album"), icon: Disc3, items: myAlbums },
+      ],
+      count: t("common.itemsCount", { n: myArtists.length + myAlbums.length }),
     },
   ];
 

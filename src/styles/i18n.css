@@ -1,0 +1,68 @@
+/* ------------------------------------------------------------------ */
+/*  Language switcher + i18n support.                                   */
+/*  Import this AFTER app.css in main.jsx.                              */
+/* ------------------------------------------------------------------ */
+
+.mm-lang { position: relative; }
+.mm-lang-trigger {
+  display: flex; align-items: center; gap: .65rem; width: 100%; text-align: left;
+  border-radius: 12px; padding: .6rem .75rem;
+  font-size: .85rem; font-weight: 500; color: var(--muted); background: transparent; border: none;
+  cursor: pointer; transition: background-color .22s var(--ease-smooth), color .22s var(--ease-smooth);
+}
+.mm-lang-trigger:hover { background: var(--surface2); color: var(--text); }
+.mm-lang-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; text-align: left; }
+.mm-lang-chevron { transition: transform .2s var(--ease-smooth); opacity: .7; flex-shrink: 0; }
+.mm-lang-chevron.open { transform: rotate(180deg); }
+
+.mm-lang-menu {
+  position: absolute; bottom: calc(100% + 8px); left: 0; width: 230px; max-width: calc(100vw - 3rem);
+  max-height: 320px; overflow-y: auto; z-index: var(--mm-z-overlay);
+  border-radius: 14px; border: 1px solid var(--border); background: var(--surface);
+  box-shadow: 0 16px 40px rgba(0,0,0,.35); padding: .5rem;
+  animation: dropdownIn .2s var(--ease-swoosh) backwards;
+}
+.mm-lang-item {
+  display: flex; align-items: center; gap: .6rem; width: 100%; text-align: left;
+  border: none; background: transparent; border-radius: 10px; padding: .5rem .6rem;
+  font-size: .8rem; color: var(--text); cursor: pointer;
+  transition: background-color .15s var(--ease-smooth);
+}
+.mm-lang-item:hover { background: var(--surface2); }
+.mm-lang-flag { width: 1.1em; flex-shrink: 0; text-align: center; }
+.mm-lang-check { margin-left: auto; color: var(--accent); flex-shrink: 0; }
+.mm-lang-divider { height: 1px; background: var(--border); margin: .4rem 0; }
+.mm-lang-group-label {
+  font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; text-transform: uppercase;
+  letter-spacing: .1em; color: var(--muted); opacity: .7; padding: .2rem .6rem .3rem;
+}
+.mm-lang-extra-list { max-height: 160px; overflow-y: auto; }
+.mm-lang-powered { font-size: 9.5px; color: var(--muted); opacity: .6; text-align: center; padding: .5rem .4rem .2rem; }
+
+.mm-lang-more { color: var(--accent); font-weight: 600; }
+.mm-lang-more-arrow { margin-left: auto; flex-shrink: 0; opacity: .7; }
+html[dir="rtl"] .mm-lang-more-arrow { margin-left: 0; margin-right: auto; transform: rotate(180deg); }
+
+/* RTL (Arabic + any extra RTL languages sent through Google Translate) */
+html[dir="rtl"] .mm-sidebar { border-right: none; border-left: 1px solid var(--border); }
+html[dir="rtl"] .mm-nav-item,
+html[dir="rtl"] .mm-link,
+html[dir="rtl"] .mm-lang-trigger,
+html[dir="rtl"] .mm-lang-item { text-align: right; }
+html[dir="rtl"] .mm-lang-menu { left: auto; right: 0; }
+html[dir="rtl"] .mm-lang-check { margin-left: 0; margin-right: auto; }
+html[dir="rtl"] .mm-cv01 { margin-left: 0; margin-right: auto; }
+html[dir="rtl"] .mm-topbar .flex { direction: rtl; }
+html[dir="rtl"] .mm-scrolltop { right: auto; left: 20px; }
+
+/* ------------------------------------------------------------------ */
+/*  Google Translate widget — used only for "other languages". We never */
+/*  show its default UI; keep the trigger element off-screen and strip  */
+/*  the banner it injects at the top of <body> so it doesn't push the   */
+/*  layout down or leave a visible Google bar.                          */
+/* ------------------------------------------------------------------ */
+#google_translate_element { position: absolute; top: -9999px; left: -9999px; }
+.goog-te-banner-frame.skiptranslate { display: none !important; }
+body { top: 0 !important; }
+.goog-tooltip, .goog-tooltip:hover { display: none !important; }
+.goog-text-highlight { background: none !important; box-shadow: none !important; }

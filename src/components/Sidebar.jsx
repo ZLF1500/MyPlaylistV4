@@ -1,6 +1,9 @@
-import { Disc3, X, Home, Star, TrendingUp, Globe } from "lucide-react";
+import { Disc3, X, Home, Star, TrendingUp } from "lucide-react";
+import { useLanguage } from "../i18n/LanguageContext.jsx";
+import LanguageSwitcher from "./LanguageSwitcher.jsx";
 
 export default function Sidebar({ page, sections, onNavigate, onHeart, mobileNavOpen, onCloseMobileNav, collapsed }) {
+  const { t } = useLanguage();
   return (
     <aside
       className={`mm-sidebar flex w-60 shrink-0 flex-col justify-between px-6 py-7 ${mobileNavOpen ? "mm-sidebar-open" : ""}`}
@@ -13,18 +16,18 @@ export default function Sidebar({ page, sections, onNavigate, onHeart, mobileNav
           </div>
           <span className="font-display text-lg font-semibold tracking-tight">Zoe Library</span>
           <span className="mm-cv01" title="Character Vocal Series 01 ✨">CV01</span>
-          <button className="mm-sidebar-close" onClick={onCloseMobileNav} title="Tutup menu">
+          <button className="mm-sidebar-close" onClick={onCloseMobileNav} title={t("sidebar.closeMenu")}>
             <X size={16} />
           </button>
         </div>
 
         <nav className="mb-8 flex flex-col gap-1">
           <button onClick={() => onNavigate("home")} className={`mm-nav-item ${page === "home" ? "active" : ""}`}>
-            <Home size={15} /> <span>Home</span>
+            <Home size={15} /> <span>{t("nav.home")}</span>
           </button>
         </nav>
 
-        <h3 className="mm-eyebrow mb-2">Koleksi</h3>
+        <h3 className="mm-eyebrow mb-2">{t("nav.collection")}</h3>
         <nav className="mb-8 flex flex-col gap-1">
           {sections.map((s) => (
             <button
@@ -39,17 +42,13 @@ export default function Sidebar({ page, sections, onNavigate, onHeart, mobileNav
 
         {page === "home" && (
           <div className="mb-6 animate-fadeUp">
-            <h3 className="mm-eyebrow mb-2">Tautan Cepat</h3>
-            <a href="#featured" className="mm-link"><Star size={13} /> <span>Unggulan</span></a>
-            <a href="#stats" className="mm-link"><TrendingUp size={13} /> <span>Statistik</span></a>
+            <h3 className="mm-eyebrow mb-2">{t("nav.quickLinks")}</h3>
+            <a href="#featured" className="mm-link"><Star size={13} /> <span>{t("nav.featured")}</span></a>
+            <a href="#stats" className="mm-link"><TrendingUp size={13} /> <span>{t("nav.stats")}</span></a>
           </div>
         )}
 
-        <div className="mm-lang">
-          <Globe size={13} className="opacity-70" />
-          <span>🇮🇩</span>
-          <span>Indonesia</span>
-        </div>
+        <LanguageSwitcher />
       </div>
 
       <div className="mm-sidebar-footer pt-4">

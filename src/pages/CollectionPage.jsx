@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { User, Globe, List, Grid3x3, Pin, PinOff } from "lucide-react";
 import GlowNav from "../effects/GlowNav.jsx";
+import { useLanguage } from "../i18n/LanguageContext.jsx";
 
 export default function CollectionPage({ section, view, setView, fx, initialFilter, nowPlaying, onPlay }) {
+  const { t } = useLanguage();
   const [filter, setFilter] = useState(initialFilter || "all");
 
   if (!section) return null;
@@ -20,11 +22,11 @@ export default function CollectionPage({ section, view, setView, fx, initialFilt
         <div className="flex flex-wrap items-center gap-4 sm:gap-6">
           <div className="mm-lib-icon"><section.icon size={30} /></div>
           <div>
-            <span className="mm-eyebrow">Koleksi</span>
+            <span className="mm-eyebrow">{t("collection.eyebrow")}</span>
             <h1 className="mt-1 font-display text-3xl sm:text-4xl md:text-5xl font-semibold italic leading-tight">{section.title}</h1>
             <p className="mt-3 flex flex-wrap items-center gap-2 text-sm mm-muted">
               <span><User size={11} className="inline -mt-0.5 mr-1" />zoe.kumori</span>
-              <span>•</span><span>{section.count}</span><span>•</span><span>Diperbarui 2026</span>
+              <span>•</span><span>{section.count}</span><span>•</span><span>{t("common.updated")}</span>
             </p>
           </div>
         </div>
@@ -33,7 +35,7 @@ export default function CollectionPage({ section, view, setView, fx, initialFilt
       <div className="mm-filterbar sticky mt-8 flex flex-wrap items-center justify-between gap-3 px-4 sm:px-6 md:px-10 py-3">
         {hasGroups && (
           <GlowNav
-            items={[{ id: "all", label: "Semua", icon: Globe }, ...section.groups.map((g) => ({ id: g.tag, label: g.label, icon: g.icon }))]}
+            items={[{ id: "all", label: t("collection.all"), icon: Globe }, ...section.groups.map((g) => ({ id: g.tag, label: g.label, icon: g.icon }))]}
             active={filter}
             onSelect={setFilter}
             enabled={fx?.glowTabs}
@@ -50,7 +52,7 @@ export default function CollectionPage({ section, view, setView, fx, initialFilt
             <h2 className={`flex items-center gap-2 font-display text-xl font-semibold mm-${section.color}-text`}>
               <b.icon size={16} /> <span className="mm-ink-text">{b.label}</span>
             </h2>
-            <span className="mm-eyebrow-mono">{b.items.length} item</span>
+            <span className="mm-eyebrow-mono">{t("common.itemsCount", { n: b.items.length })}</span>
           </div>
           <div className={`grid gap-6 ${view === "list" ? "grid-cols-1" : "sm:grid-cols-2 lg:grid-cols-3"}`}>
             {b.items.map((it) => {
@@ -61,7 +63,7 @@ export default function CollectionPage({ section, view, setView, fx, initialFilt
                   <button
                     className={`mm-pin-btn ${isPinned ? "active" : ""}`}
                     onClick={() => onPlay?.(isPinned ? null : { kind: it.kind, id: it.id })}
-                    title={isPinned ? "Lepas dari player bawah" : "Putar & tetap lanjut walau pindah halaman"}
+                    title={isPinned ? t("collection.pinRemove") : t("collection.pinAdd")}
                   >
                     {isPinned ? <PinOff size={12} /> : <Pin size={12} />}
                   </button>

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -14,6 +14,25 @@
 </head>
 <body>
   <div id="root"></div>
+
+  <!-- Google Translate widget: only used as a fallback for languages that
+       don't have a hand-written dictionary in src/i18n/locales. It stays
+       hidden (see #google_translate_element in i18n.css) — our own
+       LanguageSwitcher dropdown drives it via the `googtrans` cookie
+       instead of showing Google's default UI. pageLanguage is "en"
+       because LanguageContext always resets the app to English before
+       handing off to this widget, so it always has a known source. -->
+  <div id="google_translate_element"></div>
+  <script type="text/javascript">
+    function googleTranslateElementInit() {
+      new google.translate.TranslateElement(
+        { pageLanguage: "en", autoDisplay: false },
+        "google_translate_element"
+      );
+    }
+  </script>
+  <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
   <script type="module" src="/src/main.jsx"></script>
 </body>
 </html>

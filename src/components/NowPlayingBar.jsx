@@ -1,4 +1,5 @@
 import { X, ChevronUp, ChevronDown, Maximize2, Minimize2 } from "lucide-react";
+import { useLanguage } from "../i18n/LanguageContext.jsx";
 
 /* ------------------------------------------------------------------ */
 /*  Persistent Now Playing bar — lives OUTSIDE the Home/CollectionPage */
@@ -17,6 +18,7 @@ export default function NowPlayingBar({
   expanded, onToggleExpand,
   fullscreen, onToggleFullscreen,
 }) {
+  const { t } = useLanguage();
   if (!nowPlaying) return null;
 
   // Spotify's embed actually redraws its own UI (compact row vs full card
@@ -50,7 +52,7 @@ export default function NowPlayingBar({
           <button
             className="mm-nowplaying-btn"
             onClick={onToggleFullscreen}
-            title={fullscreen ? "Keluar layar penuh" : "Layar penuh"}
+            title={fullscreen ? t("nowplaying.exitFullscreen") : t("nowplaying.fullscreen")}
           >
             {fullscreen ? <Minimize2 size={13} /> : <Maximize2 size={13} />}
           </button>
@@ -59,12 +61,12 @@ export default function NowPlayingBar({
           <button
             className="mm-nowplaying-btn"
             onClick={onToggleExpand}
-            title={expanded ? "Perkecil player" : "Perbesar player"}
+            title={expanded ? t("nowplaying.collapse") : t("nowplaying.expand")}
           >
             {expanded ? <ChevronDown size={13} /> : <ChevronUp size={13} />}
           </button>
         )}
-        <button className="mm-nowplaying-btn" onClick={onClose} title="Tutup player">
+        <button className="mm-nowplaying-btn" onClick={onClose} title={t("nowplaying.close")}>
           <X size={13} />
         </button>
       </div>

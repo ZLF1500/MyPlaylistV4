@@ -1,6 +1,7 @@
 import { useState, useLayoutEffect } from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
+import { useLanguage } from "../i18n/LanguageContext.jsx";
 
 /* ------------------------------------------------------------------ */
 /*  Visual FX settings panel                                           */
@@ -26,6 +27,7 @@ import { X } from "lucide-react";
 /*  portaled panel (position: fixed) right under/aligned to it.         */
 /* ------------------------------------------------------------------ */
 export default function FxPanel({ fx, setFx, onClose, anchorRef }) {
+  const { t } = useLanguage();
   const [pos, setPos] = useState(null);
 
   useLayoutEffect(() => {
@@ -53,40 +55,40 @@ export default function FxPanel({ fx, setFx, onClose, anchorRef }) {
   return createPortal(
     <div className="mm-fx-panel" style={{ position: "fixed", top: pos.top, right: pos.right }}>
       <div className="mm-fx-panel-head">
-        <span>Efek Visual</span>
+        <span>{t("fx.title")}</span>
         <button className="mm-fx-close" onClick={onClose}><X size={13} /></button>
       </div>
 
       <label className="mm-fx-row">
-        <span>Electric border di kartu unggulan</span>
+        <span>{t("fx.electricBorder")}</span>
         <input type="checkbox" checked={fx.electricBorder} onChange={() => toggle("electricBorder")} />
       </label>
 
       <label className="mm-fx-row">
-        <span>Glowing tab navigasi</span>
+        <span>{t("fx.glowTabs")}</span>
         <input type="checkbox" checked={fx.glowTabs} onChange={() => toggle("glowTabs")} />
       </label>
 
       <label className="mm-fx-row">
-        <span>Heart burst (pink)</span>
+        <span>{t("fx.heartBurst")}</span>
         <input type="checkbox" checked={fx.heartBurst} onChange={() => toggle("heartBurst")} />
       </label>
 
       <div className="mm-fx-divider" />
-      <div className="mm-fx-group-label">Background</div>
+      <div className="mm-fx-group-label">{t("fx.background")}</div>
 
       <label className="mm-fx-row">
-        <span>Partikel bokeh &amp; debu</span>
+        <span>{t("fx.particles")}</span>
         <input type="checkbox" checked={fx.particles} onChange={() => toggle("particles")} />
       </label>
 
       <label className="mm-fx-row">
-        <span>Sticker Miku bergantian</span>
+        <span>{t("fx.stickers")}</span>
         <input type="checkbox" checked={fx.stickers} onChange={() => toggle("stickers")} />
       </label>
 
       <label className="mm-fx-row">
-        <span>Equalizer di hero</span>
+        <span>{t("fx.equalizer")}</span>
         <input type="checkbox" checked={fx.equalizer} onChange={() => toggle("equalizer")} />
       </label>
     </div>,

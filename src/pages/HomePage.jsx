@@ -1,18 +1,21 @@
 import { Heart, ListMusic, User, TrendingUp, Crown, Flame, Sparkles, Play, Star } from "lucide-react";
 import ElectricBorder from "../effects/ElectricBorder.jsx";
 import Equalizer from "../components/Equalizer.jsx";
+import { useLanguage } from "../i18n/LanguageContext.jsx";
 
 export default function HomePage({ T, onNavigate, fx, onHeart }) {
+  const { t } = useLanguage();
+
   const stats = [
-    { icon: ListMusic, num: "2", label: "Playlist", c: "accent" },
-    { icon: User, num: "2", label: "Artis", c: "accent2" },
-    { icon: TrendingUp, num: "4", label: "Chart Teratas", c: "berry" },
-    { icon: Heart, num: "28", label: "Lagu Favorit", c: "accent" },
+    { icon: ListMusic, num: "2", label: t("home.stats.playlist"), c: "accent" },
+    { icon: User, num: "2", label: t("home.stats.artists"), c: "accent2" },
+    { icon: TrendingUp, num: "4", label: t("home.stats.topChart"), c: "berry" },
+    { icon: Heart, num: "28", label: t("home.stats.favSongs"), c: "accent" },
   ];
   const featured = [
-    { icon: Flame, title: "Top Hits", desc: "Chart dunia teratas", c: "accent", img: "cover-top-hits.jpg", page: "playlist-hub", filterTag: "top" },
-    { icon: Heart, title: "Favorit Saya", desc: "Kumpulan lagu tersayang", c: "berry", img: "cover-favorit-saya.jpg", page: "favorite-songs", filterTag: null },
-    { icon: Sparkles, title: "Vocaloid Vibes", desc: "PoPiPo & kawan-kawan", c: "accent2", img: "cover-vocaloid-vibes.jpg", page: "playlist-hub", filterTag: "dailymix" },
+    { icon: Flame, title: t("home.featured.topHits.title"), desc: t("home.featured.topHits.desc"), c: "accent", img: "cover-top-hits.jpg", page: "playlist-hub", filterTag: "top", key: "topHits" },
+    { icon: Heart, title: t("home.featured.myFavorites.title"), desc: t("home.featured.myFavorites.desc"), c: "berry", img: "cover-favorit-saya.jpg", page: "favorite-songs", filterTag: null, key: "myFavorites" },
+    { icon: Sparkles, title: t("home.featured.vocaloidVibes.title"), desc: t("home.featured.vocaloidVibes.desc"), c: "accent2", img: "cover-vocaloid-vibes.jpg", page: "playlist-hub", filterTag: "dailymix", key: "vocaloidVibes" },
   ];
   const colorVar = { accent: "var(--accent)", accent2: "var(--accent2)", berry: "var(--berry)" };
   return (
@@ -21,20 +24,20 @@ export default function HomePage({ T, onNavigate, fx, onHeart }) {
         {fx?.equalizer && <Equalizer />}
         <div className="relative max-w-2xl animate-fadeUp">
           <div className="mm-badge mb-5">
-            <Crown size={12} /> <span>Koleksi Premium</span>
+            <Crown size={12} /> <span>{t("home.badge")}</span>
           </div>
           <h1 className="font-display text-3xl sm:text-4xl md:text-6xl font-semibold italic leading-[1.12] tracking-tight">
-            Selamat Datang di<br />Semesta Musik Saya
+            {t("home.titleLine1")}<br />{t("home.titleLine2")}
           </h1>
           <p className="mt-5 max-w-lg text-base leading-relaxed mm-muted">
-            Jelajahi playlist pilihan Zoe Library, chart teratas, dan artis favorit — ditemani nuansa biru toska ala Hatsune Miku. 🎵
+            {t("home.subtitle")}
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <button onClick={() => onNavigate("favorite-songs")} className="mm-btn-primary">
-              <Play size={12} /> Jelajahi Koleksi
+              <Play size={12} /> {t("home.exploreBtn")}
             </button>
             <a href="#featured" className="mm-btn-secondary">
-              <Star size={12} /> Lihat Unggulan
+              <Star size={12} /> {t("home.featuredBtn")}
             </a>
           </div>
         </div>
@@ -52,15 +55,15 @@ export default function HomePage({ T, onNavigate, fx, onHeart }) {
 
       <section id="featured" className="px-4 sm:px-6 md:px-10 py-12">
         <div className="mb-6">
-          <h2 className="font-display text-2xl font-semibold">Koleksi Unggulan</h2>
-          <p className="mt-1 text-sm mm-muted">Playlist pilihan khusus untukmu</p>
+          <h2 className="font-display text-2xl font-semibold">{t("home.featuredTitle")}</h2>
+          <p className="mt-1 text-sm mm-muted">{t("home.featuredSubtitle")}</p>
         </div>
         <div className="grid gap-5 md:grid-cols-3">
           {featured.map((f, i) => {
             const card = (
               <div
                 className={`mm-featured-card mm-hover-lift mm-featured-${f.c}`}
-                onClick={(e) => { onNavigate(f.page, f.filterTag); if (f.title === "Favorit Saya") onHeart?.(e); }}
+                onClick={(e) => { onNavigate(f.page, f.filterTag); if (f.key === "myFavorites") onHeart?.(e); }}
               >
                 <img
                   src={`/assets/${f.img}`}
@@ -76,11 +79,11 @@ export default function HomePage({ T, onNavigate, fx, onHeart }) {
               </div>
             );
             return fx?.electricBorder ? (
-              <ElectricBorder key={i} color={colorVar[f.c]} radius={20} style={{ animationDelay: `${i * 60}ms` }}>
+              <ElectricBorder key={f.key} color={colorVar[f.c]} radius={20} style={{ animationDelay: `${i * 60}ms` }}>
                 {card}
               </ElectricBorder>
             ) : (
-              <div key={i}>{card}</div>
+              <div key={f.key}>{card}</div>
             );
           })}
         </div>
